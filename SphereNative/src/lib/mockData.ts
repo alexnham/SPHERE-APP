@@ -1,0 +1,123 @@
+export interface Account {
+  id: string;
+  institution: string;
+  type: 'checking' | 'savings' | 'credit' | 'investment' | 'loan';
+  name: string;
+  availableBalance: number;
+  currentBalance: number;
+  currency: string;
+  lastSync: Date;
+  icon: string;
+}
+
+export interface Transaction {
+  id: string;
+  accountId: string;
+  date: Date;
+  amount: number;
+  merchant: string;
+  category: string;
+  pending: boolean;
+  paymentChannel: string;
+}
+
+export interface Liability {
+  id: string;
+  lender: string;
+  type: 'credit_card' | 'loan' | 'bnpl' | 'mortgage';
+  currentBalance: number;
+  statementBalance?: number;
+  minPayment?: number;
+  dueDate?: Date;
+  apr?: number;
+  lateFeeRule?: number;
+  status: 'current' | 'due_soon' | 'overdue';
+  icon: string;
+}
+
+export interface RecurringCharge {
+  id: string;
+  merchant: string;
+  cadence: 'weekly' | 'biweekly' | 'monthly' | 'yearly';
+  nextDate: Date;
+  avgAmount: number;
+  category: string;
+}
+
+export interface DailySpend {
+  date: Date;
+  totalSpend: number;
+  categories: { [key: string]: number };
+}
+
+export const mockAccounts: Account[] = [
+  { id: 'acc-1', institution: 'TD Bank', type: 'checking', name: 'Chequing Account', availableBalance: 4250.32, currentBalance: 4350.32, currency: 'CAD', lastSync: new Date(), icon: '🟢' },
+  { id: 'acc-2', institution: 'RBC', type: 'checking', name: 'Day to Day Banking', availableBalance: 2875.50, currentBalance: 2875.50, currency: 'CAD', lastSync: new Date(), icon: '🔵' },
+  { id: 'acc-3', institution: 'TD Bank', type: 'savings', name: 'High Interest Savings', availableBalance: 12500.00, currentBalance: 12500.00, currency: 'CAD', lastSync: new Date(), icon: '🟢' },
+  { id: 'acc-4', institution: 'RBC', type: 'savings', name: 'TFSA Savings', availableBalance: 8750.00, currentBalance: 8750.00, currency: 'CAD', lastSync: new Date(), icon: '🔵' },
+  { id: 'acc-5', institution: 'Fidelity', type: 'investment', name: 'Brokerage Account', availableBalance: 34567.89, currentBalance: 34567.89, currency: 'CAD', lastSync: new Date(), icon: '📈' },
+];
+
+export const mockLiabilities: Liability[] = [
+  { id: 'lia-1', lender: 'Chase Sapphire', type: 'credit_card', currentBalance: 2340.50, statementBalance: 2100.00, minPayment: 45.00, dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), apr: 24.99, lateFeeRule: 39, status: 'due_soon', icon: '💳' },
+  { id: 'lia-2', lender: 'Amex Gold', type: 'credit_card', currentBalance: 890.25, statementBalance: 890.25, minPayment: 25.00, dueDate: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000), apr: 21.99, lateFeeRule: 29, status: 'current', icon: '💳' },
+  { id: 'lia-3', lender: 'Auto Loan', type: 'loan', currentBalance: 15234.00, minPayment: 425.00, dueDate: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000), apr: 5.99, status: 'current', icon: '🚗' },
+];
+
+export const mockRecurringCharges: RecurringCharge[] = [
+  { id: 'rec-1', merchant: 'Netflix', cadence: 'monthly', nextDate: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000), avgAmount: 15.99, category: 'Entertainment' },
+  { id: 'rec-2', merchant: 'Spotify', cadence: 'monthly', nextDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), avgAmount: 10.99, category: 'Entertainment' },
+  { id: 'rec-3', merchant: 'Electric Co', cadence: 'monthly', nextDate: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000), avgAmount: 145.00, category: 'Utilities' },
+  { id: 'rec-4', merchant: 'Gym Membership', cadence: 'monthly', nextDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000), avgAmount: 49.99, category: 'Health' },
+];
+
+const merchants = [
+  { name: 'Whole Foods', category: 'Groceries' },
+  { name: 'Amazon', category: 'Shopping' },
+  { name: 'Starbucks', category: 'Coffee' },
+  { name: 'Uber', category: 'Transport' },
+  { name: 'Target', category: 'Shopping' },
+  { name: 'Chipotle', category: 'Dining' },
+  { name: 'Shell Gas', category: 'Gas' },
+  { name: 'CVS Pharmacy', category: 'Health' },
+];
+
+export const generateMockTransactions = (): Transaction[] => {
+  const transactions: Transaction[] = [];
+  for (let i = 0; i < 45; i++) {
+    const daysAgo = Math.floor(Math.random() * 30);
+    const merchant = merchants[Math.floor(Math.random() * merchants.length)];
+    transactions.push({
+      id: `txn-${i}`,
+      accountId: Math.random() > 0.3 ? 'acc-1' : 'acc-3',
+      date: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
+      amount: -(Math.random() * 150 + 5),
+      merchant: merchant.name,
+      category: merchant.category,
+      pending: daysAgo < 2 && Math.random() > 0.5,
+      paymentChannel: Math.random() > 0.5 ? 'card' : 'online',
+    });
+  }
+  transactions.push({ id: 'txn-income-1', accountId: 'acc-1', date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000), amount: 3200.00, merchant: 'Direct Deposit - Employer', category: 'Income', pending: false, paymentChannel: 'ach' });
+  return transactions.sort((a, b) => b.date.getTime() - a.date.getTime());
+};
+
+export const mockTransactions = generateMockTransactions();
+
+export const calculateSafeToSpend = () => {
+  const liquidAvailable = mockAccounts.filter(a => a.type === 'checking').reduce((sum, a) => sum + a.availableBalance, 0);
+  const pendingOutflows = mockTransactions.filter(t => t.pending && t.amount < 0).reduce((sum, t) => sum + Math.abs(t.amount), 0);
+  const upcoming7dEssentials = mockRecurringCharges.filter(r => {
+    const daysUntil = Math.ceil((r.nextDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+    return daysUntil <= 7 && daysUntil >= 0;
+  }).reduce((sum, r) => sum + r.avgAmount, 0);
+  const userBuffer = 200;
+  const safeToSpend = liquidAvailable - pendingOutflows - upcoming7dEssentials - userBuffer;
+  return { safeToSpend: Math.max(0, safeToSpend), breakdown: { liquidAvailable, pendingOutflows, upcoming7dEssentials, userBuffer } };
+};
+
+export const calculateNetWorth = () => {
+  const assets = mockAccounts.reduce((sum, a) => sum + a.currentBalance, 0);
+  const liabilities = mockLiabilities.reduce((sum, l) => sum + l.currentBalance, 0);
+  return { assets, liabilities, netWorth: assets - liabilities };
+};

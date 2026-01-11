@@ -1,0 +1,329 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Pretendard:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Light Cyan Theme */
+    --background: 185 50% 95%;
+    --foreground: 195 30% 20%;
+
+    --card: 185 45% 98%;
+    --card-foreground: 195 30% 18%;
+
+    --popover: 185 45% 98%;
+    --popover-foreground: 195 30% 18%;
+
+    --primary: 185 55% 45%;
+    --primary-foreground: 185 45% 98%;
+    --primary-muted: 185 40% 88%;
+
+    --secondary: 200 60% 96%;
+    --secondary-foreground: 200 40% 25%;
+
+    --muted: 185 25% 90%;
+    --muted-foreground: 195 15% 45%;
+
+    --accent: 185 35% 85%;
+    --accent-foreground: 195 45% 30%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --warning-muted: 38 50% 92%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-muted: 0 50% 95%;
+
+    --success: 165 50% 45%;
+    --success-foreground: 185 45% 98%;
+    --success-muted: 165 40% 90%;
+
+    --border: 185 25% 85%;
+    --input: 185 30% 88%;
+    --ring: 185 55% 45%;
+
+    --radius: 1.25rem;
+
+    /* Sphere-specific tokens */
+    --sphere-safe: 165 50% 45%;
+    --sphere-pending: 38 80% 50%;
+    --sphere-committed: 195 20% 50%;
+    --sphere-buffer: 185 55% 45%;
+
+    /* Category colors - Cyan palette (lighter tones) */
+    --category-groceries: 165 55% 55%;
+    --category-shopping: 320 45% 65%;
+    --category-coffee: 30 60% 55%;
+    --category-transport: 185 50% 50%;
+    --category-dining: 10 55% 60%;
+    --category-gas: 200 50% 58%;
+    --category-health: 175 50% 50%;
+    --category-tech: 260 50% 65%;
+    --category-entertainment: 340 50% 65%;
+    --category-utilities: 190 50% 55%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(185 55% 45%) 0%, hsl(175 50% 50%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(185 45% 98%) 0%, hsl(185 40% 95%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(185 50% 95%) 0%, hsl(185 45% 98%) 100%);
+
+    /* Shadows - cool cyan */
+    --shadow-sm: 0 1px 2px 0 hsl(195 30% 30% / 0.04);
+    --shadow-md: 0 2px 8px -2px hsl(195 30% 30% / 0.08);
+    --shadow-lg: 0 8px 24px -4px hsl(195 30% 30% / 0.12);
+    --shadow-card: 0 1px 3px 0 hsl(195 30% 30% / 0.05), 0 1px 2px -1px hsl(195 30% 30% / 0.03);
+    --shadow-card-hover: 0 8px 24px -4px hsl(195 30% 30% / 0.12);
+
+    --sidebar-background: 185 45% 98%;
+    --sidebar-foreground: 195 30% 18%;
+    --sidebar-primary: 185 55% 45%;
+    --sidebar-primary-foreground: 185 45% 98%;
+    --sidebar-accent: 185 40% 88%;
+    --sidebar-accent-foreground: 195 45% 30%;
+    --sidebar-border: 185 25% 85%;
+    --sidebar-ring: 185 55% 45%;
+  }
+
+  .dark {
+    /* Dark Cyan Theme */
+    --background: 195 30% 10%;
+    --foreground: 185 25% 90%;
+
+    --card: 195 25% 14%;
+    --card-foreground: 185 25% 90%;
+
+    --popover: 195 25% 14%;
+    --popover-foreground: 185 25% 90%;
+
+    --primary: 185 50% 55%;
+    --primary-foreground: 195 30% 10%;
+    --primary-muted: 185 30% 20%;
+
+    --secondary: 200 40% 22%;
+    --secondary-foreground: 200 50% 85%;
+
+    --muted: 195 20% 18%;
+    --muted-foreground: 185 15% 55%;
+
+    --accent: 185 25% 22%;
+    --accent-foreground: 185 45% 65%;
+
+    --warning: 38 85% 55%;
+    --warning-foreground: 195 30% 10%;
+    --warning-muted: 38 30% 18%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --destructive-muted: 0 30% 18%;
+
+    --success: 165 50% 50%;
+    --success-foreground: 195 30% 10%;
+    --success-muted: 165 30% 20%;
+
+    --border: 195 20% 20%;
+    --input: 195 20% 20%;
+    --ring: 185 50% 55%;
+
+    --sphere-safe: 165 50% 50%;
+    --sphere-pending: 38 85% 55%;
+    --sphere-committed: 195 20% 55%;
+    --sphere-buffer: 185 50% 50%;
+
+    /* Category colors - cyan dark mode (lighter tones) */
+    --category-groceries: 165 55% 60%;
+    --category-shopping: 320 50% 68%;
+    --category-coffee: 30 65% 60%;
+    --category-transport: 185 50% 58%;
+    --category-dining: 10 60% 62%;
+    --category-gas: 200 55% 62%;
+    --category-health: 175 50% 58%;
+    --category-tech: 260 55% 68%;
+    --category-entertainment: 340 55% 68%;
+    --category-utilities: 190 55% 58%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(185 50% 50%) 0%, hsl(175 45% 40%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(195 25% 14%) 0%, hsl(195 25% 11%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(195 30% 10%) 0%, hsl(195 25% 14%) 100%);
+
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow-md: 0 2px 8px -2px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 8px 24px -4px hsl(0 0% 0% / 0.5);
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.3);
+    --shadow-card-hover: 0 8px 24px -4px hsl(0 0% 0% / 0.4);
+
+    --sidebar-background: 195 30% 10%;
+    --sidebar-foreground: 185 20% 88%;
+    --sidebar-primary: 185 50% 55%;
+    --sidebar-primary-foreground: 195 30% 10%;
+    --sidebar-accent: 185 30% 20%;
+    --sidebar-accent-foreground: 185 45% 65%;
+    --sidebar-border: 195 20% 20%;
+    --sidebar-ring: 185 50% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
+    position: relative;
+  }
+
+  /* Subtle noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  }
+
+  .dark body::before {
+    opacity: 0.04;
+  }
+
+  #root {
+    position: relative;
+    z-index: 1;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /* Toss-style card: clean, minimal borders, soft shadows */
+  .sphere-card {
+    @apply bg-card rounded-3xl border-0;
+    box-shadow: var(--shadow-card);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .sphere-card:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+  }
+
+  .sphere-gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Toss-style badges: pill shape, subtle colors */
+  .sphere-safe-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    background: hsl(var(--success-muted));
+    color: hsl(var(--success));
+  }
+
+  .sphere-warning-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    background: hsl(var(--warning-muted));
+    color: hsl(var(--warning));
+  }
+
+  .sphere-pending-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+    background: hsl(var(--muted));
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Toss-style progress bar: thinner, rounded */
+  .sphere-progress {
+    @apply h-1.5 rounded-full bg-muted overflow-hidden;
+  }
+
+  .sphere-progress-bar {
+    @apply h-full rounded-full transition-all duration-500 ease-out;
+  }
+
+  /* Toss-style buttons */
+  .toss-button {
+    @apply rounded-2xl font-medium transition-all duration-200;
+  }
+
+  .toss-button:active {
+    transform: scale(0.98);
+  }
+
+  /* Toss-style list items */
+  .toss-list-item {
+    @apply flex items-center gap-4 p-4 rounded-2xl transition-colors duration-200;
+  }
+
+  .toss-list-item:hover {
+    @apply bg-muted/50;
+  }
+
+  /* Toss-style icon container */
+  .toss-icon {
+    @apply w-10 h-10 rounded-2xl flex items-center justify-center;
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes slideUp {
+    from { 
+      opacity: 0; 
+      transform: translateY(10px); 
+    }
+    to { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+  }
+
+  @keyframes scaleIn {
+    from { 
+      opacity: 0; 
+      transform: scale(0.95); 
+    }
+    to { 
+      opacity: 1; 
+      transform: scale(1); 
+    }
+  }
+
+  .stagger-1 { animation-delay: 0.05s; }
+  .stagger-2 { animation-delay: 0.1s; }
+  .stagger-3 { animation-delay: 0.15s; }
+  .stagger-4 { animation-delay: 0.2s; }
+  .stagger-5 { animation-delay: 0.25s; }
+}
