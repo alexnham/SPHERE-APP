@@ -122,60 +122,80 @@ export const calculateNetWorth = () => {
   return { assets, liabilities, netWorth: assets - liabilities };
 };
 
+// Helper to convert HSL to Hex
+const hslToHex = (h: number, s: number, l: number): string => {
+  s /= 100;
+  l /= 100;
+  const a = s * Math.min(l, 1 - l);
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+};
+
 export const colors = {
   light: {
-    background: '#FFFFFF',
-    card: '#F8F9FA',
-    text: '#1A1A1A',
-    textSecondary: '#6B7280',
-    primary: '#6366F1',
-    primaryMuted: 'rgba(99, 102, 241, 0.1)',
-    success: '#10B981',
-    successMuted: 'rgba(16, 185, 129, 0.1)',
-    warning: '#F59E0B',
+    // Light Cyan Theme - matching web app
+    background: hslToHex(185, 50, 95),      // --background: 185 50% 95%
+    card: hslToHex(185, 45, 98),            // --card: 185 45% 98%
+    surface: hslToHex(185, 40, 96),         // slightly darker for surfaces
+    text: hslToHex(195, 30, 20),            // --foreground: 195 30% 20%
+    textSecondary: hslToHex(195, 15, 45),   // --muted-foreground: 195 15% 45%
+    primary: hslToHex(185, 55, 45),         // --primary: 185 55% 45%
+    primaryMuted: 'rgba(45, 140, 150, 0.1)', // cyan primary with opacity
+    success: hslToHex(165, 50, 45),         // --success: 165 50% 45%
+    successMuted: 'rgba(45, 150, 120, 0.1)',
+    warning: hslToHex(38, 92, 50),          // --warning: 38 92% 50%
     warningMuted: 'rgba(245, 158, 11, 0.1)',
-    destructive: '#EF4444',
-    destructiveMuted: 'rgba(239, 68, 68, 0.1)',
-    border: '#E5E7EB',
-    muted: '#F3F4F6',
-    secondary: 'rgba(0, 0, 0, 0.05)',
-    pending: '#F59E0B',
-    committed: '#3B82F6',
-    buffer: '#8B5CF6',
+    destructive: hslToHex(0, 65, 55),       // --destructive: 0 65% 55%
+    destructiveMuted: 'rgba(220, 80, 80, 0.1)',
+    border: hslToHex(185, 25, 85),          // --border: 185 25% 85%
+    muted: hslToHex(185, 25, 90),           // --muted: 185 25% 90%
+    secondary: hslToHex(200, 60, 96),       // --secondary: 200 60% 96%
+    pending: hslToHex(38, 80, 50),          // --sphere-pending
+    committed: hslToHex(195, 20, 50),       // --sphere-committed
+    buffer: hslToHex(185, 55, 45),          // --sphere-buffer (same as primary)
+    ring: hslToHex(185, 55, 45),            // --ring
   },
   dark: {
-    background: '#0A0A0B',
-    card: '#1A1A1D',
-    text: '#FAFAFA',
-    textSecondary: '#A1A1AA',
-    primary: '#818CF8',
-    primaryMuted: 'rgba(129, 140, 248, 0.15)',
-    success: '#34D399',
+    // Dark Cyan Theme - matching web app
+    background: hslToHex(195, 30, 10),      // --background: 195 30% 10%
+    card: hslToHex(195, 25, 14),            // --card: 195 25% 14%
+    surface: hslToHex(195, 25, 18),         // slightly lighter for surfaces
+    text: hslToHex(185, 25, 90),            // --foreground: 185 25% 90%
+    textSecondary: hslToHex(185, 15, 55),   // --muted-foreground: 185 15% 55%
+    primary: hslToHex(185, 50, 55),         // --primary: 185 50% 55%
+    primaryMuted: 'rgba(70, 180, 190, 0.15)', // cyan primary with opacity
+    success: hslToHex(165, 50, 50),         // --success: 165 50% 50%
     successMuted: 'rgba(52, 211, 153, 0.15)',
-    warning: '#FBBF24',
+    warning: hslToHex(38, 85, 55),          // --warning: 38 85% 55%
     warningMuted: 'rgba(251, 191, 36, 0.15)',
-    destructive: '#F87171',
+    destructive: hslToHex(0, 65, 55),       // --destructive: 0 65% 55%
     destructiveMuted: 'rgba(248, 113, 113, 0.15)',
-    border: '#27272A',
-    muted: '#27272A',
-    secondary: 'rgba(255, 255, 255, 0.05)',
-    pending: '#FBBF24',
-    committed: '#60A5FA',
-    buffer: '#A78BFA',
+    border: hslToHex(195, 20, 20),          // --border: 195 20% 20%
+    muted: hslToHex(195, 20, 18),           // --muted: 195 20% 18%
+    secondary: hslToHex(200, 40, 22),       // --secondary: 200 40% 22%
+    pending: hslToHex(38, 85, 55),          // --sphere-pending
+    committed: hslToHex(195, 20, 55),       // --sphere-committed
+    buffer: hslToHex(185, 50, 50),          // --sphere-buffer
+    ring: hslToHex(185, 50, 55),            // --ring
   },
 };
 
 export const categoryColors: Record<string, string> = {
-  Groceries: '#10B981',
-  Shopping: '#8B5CF6',
-  Coffee: '#F59E0B',
-  Transport: '#3B82F6',
-  Dining: '#EC4899',
-  Gas: '#6366F1',
-  Health: '#14B8A6',
-  Tech: '#F97316',
-  Entertainment: '#A855F7',
-  Utilities: '#06B6D4',
+  // Cyan palette category colors - matching web app
+  Groceries: hslToHex(165, 55, 55),         // --category-groceries
+  Shopping: hslToHex(320, 45, 65),          // --category-shopping
+  Coffee: hslToHex(30, 60, 55),             // --category-coffee
+  Transport: hslToHex(185, 50, 50),         // --category-transport
+  Dining: hslToHex(10, 55, 60),             // --category-dining
+  Gas: hslToHex(200, 50, 58),               // --category-gas
+  Health: hslToHex(175, 50, 50),            // --category-health
+  Tech: hslToHex(260, 50, 65),              // --category-tech
+  Entertainment: hslToHex(340, 50, 65),     // --category-entertainment
+  Utilities: hslToHex(190, 50, 55),         // --category-utilities
 };
 
 export const spacing = {

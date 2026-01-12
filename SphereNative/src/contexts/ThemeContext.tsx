@@ -6,6 +6,7 @@ type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
   theme: Theme;
+  isDark: boolean;
   colors: typeof colors.light;
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
@@ -29,6 +30,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
   const value = {
     theme,
+    isDark: theme === 'dark',
     colors: colors[theme],
     toggleTheme,
     setTheme,

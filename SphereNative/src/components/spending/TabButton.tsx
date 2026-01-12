@@ -1,0 +1,48 @@
+import React from 'react';
+import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+
+interface TabButtonProps {
+  title: string;
+  icon: string;
+  isActive: boolean;
+  onPress: () => void;
+  colors: any;
+}
+
+export const TabButton = ({ title, icon, isActive, onPress, colors }: TabButtonProps) => (
+  <TouchableOpacity
+    style={[
+      styles.tabButton,
+      {
+        backgroundColor: isActive ? colors.primary : colors.surface,
+        borderColor: isActive ? colors.primary : colors.border,
+      },
+    ]}
+    onPress={onPress}
+  >
+    <Text style={{ marginRight: 6 }}>{icon}</Text>
+    <Text
+      style={[
+        styles.tabButtonText,
+        { color: isActive ? '#fff' : colors.textSecondary },
+      ]}
+    >
+      {title}
+    </Text>
+  </TouchableOpacity>
+);
+
+const styles = StyleSheet.create({
+  tabButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  tabButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+});
