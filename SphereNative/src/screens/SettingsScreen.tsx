@@ -10,7 +10,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Card } from '../components/Card';
+import { RootStackParamList } from '../navigation/AppNavigator';
 
 // Mock user data
 const mockUser = {
@@ -54,7 +56,7 @@ const SettingItem = ({ icon, label, description, onPress, colors }: SettingItemP
 
 export default function SettingsScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
 
   const [pushNotifications, setPushNotifications] = useState(true);
@@ -140,6 +142,12 @@ export default function SettingsScreen() {
               <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
             </TouchableOpacity>
           ))}
+          <TouchableOpacity
+            style={[styles.addBankButton, { borderColor: colors.border }]}
+            onPress={() => navigation.navigate('Onboarding')}
+          >
+            <Text style={[styles.addBankText, { color: colors.primary }]}>+ Add Another Bank</Text>
+          </TouchableOpacity>
         </Card>
 
         {/* Quick Settings */}
@@ -149,19 +157,17 @@ export default function SettingsScreen() {
           </Text>
 
           {/* Dark Mode Toggle */}
-          <View style={styles.toggleRow}>
-            <View style={styles.toggleLeft}>
-              <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
-                <Text style={styles.settingIconText}>{isDark ? '🌙' : '☀️'}</Text>
-              </View>
-              <View>
-                <Text style={[styles.toggleLabel, { color: colors.text }]}>
-                  Dark Mode
-                </Text>
-                <Text style={[styles.toggleDescription, { color: colors.textSecondary }]}>
-                  Switch between light and dark themes
-                </Text>
-              </View>
+          <View style={[styles.toggleItem, { backgroundColor: colors.surface }]}>
+            <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
+              <Text style={styles.settingIconText}>{isDark ? '🌙' : '☀️'}</Text>
+            </View>
+            <View style={styles.toggleContent}>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                Dark Mode
+              </Text>
+              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                {isDark ? 'Currently using dark theme' : 'Currently using light theme'}
+              </Text>
             </View>
             <Switch
               value={isDark}
@@ -171,22 +177,18 @@ export default function SettingsScreen() {
             />
           </View>
 
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
-
-          {/* Push Notifications Toggle */}
-          <View style={styles.toggleRow}>
-            <View style={styles.toggleLeft}>
-              <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
-                <Text style={styles.settingIconText}>🔔</Text>
-              </View>
-              <View>
-                <Text style={[styles.toggleLabel, { color: colors.text }]}>
-                  Push Notifications
-                </Text>
-                <Text style={[styles.toggleDescription, { color: colors.textSecondary }]}>
-                  Receive alerts and reminders
-                </Text>
-              </View>
+          {/* Push Notifications */}
+          <View style={[styles.toggleItem, { backgroundColor: colors.surface }]}>
+            <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
+              <Text style={styles.settingIconText}>🔔</Text>
+            </View>
+            <View style={styles.toggleContent}>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                Push Notifications
+              </Text>
+              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                Get alerts for bills and spending
+              </Text>
             </View>
             <Switch
               value={pushNotifications}
@@ -196,22 +198,18 @@ export default function SettingsScreen() {
             />
           </View>
 
-          <View style={[styles.separator, { backgroundColor: colors.border }]} />
-
-          {/* Biometric Auth Toggle */}
-          <View style={styles.toggleRow}>
-            <View style={styles.toggleLeft}>
-              <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
-                <Text style={styles.settingIconText}>🔐</Text>
-              </View>
-              <View>
-                <Text style={[styles.toggleLabel, { color: colors.text }]}>
-                  Biometric Login
-                </Text>
-                <Text style={[styles.toggleDescription, { color: colors.textSecondary }]}>
-                  Use Face ID or fingerprint
-                </Text>
-              </View>
+          {/* Biometric Auth */}
+          <View style={[styles.toggleItem, { backgroundColor: colors.surface }]}>
+            <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
+              <Text style={styles.settingIconText}>🔐</Text>
+            </View>
+            <View style={styles.toggleContent}>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                Biometric Login
+              </Text>
+              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                Use Face ID or fingerprint
+              </Text>
             </View>
             <Switch
               value={biometricAuth}
@@ -235,64 +233,55 @@ export default function SettingsScreen() {
             colors={colors}
           />
           <SettingItem
-            icon="🛡️"
+            icon="🔒"
             label="Security"
-            description="Password, 2FA, login history"
+            description="Password, 2FA settings"
             onPress={() => {}}
             colors={colors}
           />
           <SettingItem
-            icon="📱"
-            label="Devices"
-            description="Manage connected devices"
+            icon="📊"
+            label="Data & Privacy"
+            description="Export data, delete account"
             onPress={() => {}}
             colors={colors}
           />
-        </Card>
-
-        {/* Preferences */}
-        <Card>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            Preferences
-          </Text>
-          <SettingItem
-            icon="💳"
-            label="Payment Methods"
-            description="Manage your payment options"
-            onPress={() => {}}
-            colors={colors}
-          />
-          <SettingItem
-            icon="🔗"
-            label="Add New Account"
-            description="Connect another bank or card"
-            onPress={() => {}}
-            colors={colors}
-          />
-        </Card>
-
-        {/* Support */}
-        <Card>
-          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
-            Support
-          </Text>
           <SettingItem
             icon="❓"
-            label="Help Center"
-            description="FAQs and support articles"
+            label="Help & Support"
+            description="FAQ, contact us"
             onPress={() => {}}
             colors={colors}
           />
         </Card>
 
-        {/* Logout Button */}
-        <TouchableOpacity
-          style={[styles.logoutButton, { backgroundColor: colors.destructiveMuted }]}
-        >
-          <Text style={[styles.logoutText, { color: colors.destructive }]}>
-            Log Out
+        {/* Developer Section - Temp Button */}
+        <Card>
+          <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
+            Developer
           </Text>
+          <TouchableOpacity
+            style={[styles.devButton, { backgroundColor: colors.primary }]}
+            onPress={() => navigation.navigate('Onboarding')}
+          >
+            <Text style={styles.devButtonIcon}>🚀</Text>
+            <View style={styles.devButtonContent}>
+              <Text style={styles.devButtonText}>Launch Onboarding Flow</Text>
+              <Text style={styles.devButtonSubtext}>
+                Test OAuth & Plaid mock integration
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </Card>
+
+        {/* Sign Out */}
+        <TouchableOpacity style={[styles.signOutButton, { borderColor: colors.border }]}>
+          <Text style={[styles.signOutText, { color: '#ef4444' }]}>Sign Out</Text>
         </TouchableOpacity>
+
+        <Text style={[styles.versionText, { color: colors.textSecondary }]}>
+          Sphere v1.0.0
+        </Text>
 
         <View style={styles.bottomPadding} />
       </ScrollView>
@@ -301,9 +290,7 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -312,65 +299,34 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     borderBottomWidth: 1,
   },
-  backButton: {
-    width: 60,
-  },
-  backText: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    padding: 16,
-  },
+  backButton: { width: 70 },
+  backText: { fontSize: 16, fontWeight: '500' },
+  headerTitle: { fontSize: 18, fontWeight: '600' },
+  scrollView: { flex: 1 },
+  contentContainer: { padding: 16 },
   profileSection: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: {
-    color: '#fff',
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  profileInfo: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  profileName: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  profileEmail: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  profileMember: {
-    fontSize: 11,
-    marginTop: 4,
-  },
-  editButton: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
+  avatarText: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  profileInfo: { flex: 1, marginLeft: 16 },
+  profileName: { fontSize: 18, fontWeight: '600' },
+  profileEmail: { fontSize: 13, marginTop: 2 },
+  profileMember: { fontSize: 11, marginTop: 4 },
+  editButton: { fontSize: 14, fontWeight: '500' },
   sectionTitle: {
     fontSize: 12,
     fontWeight: '600',
-    marginBottom: 12,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
+    marginBottom: 12,
   },
   bankItem: {
     flexDirection: 'row',
@@ -382,45 +338,31 @@ const styles = StyleSheet.create({
   bankIcon: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bankInfo: {
-    flex: 1,
-    marginLeft: 12,
+  bankInfo: { flex: 1, marginLeft: 12 },
+  bankName: { fontSize: 14, fontWeight: '500' },
+  bankMeta: { fontSize: 11, marginTop: 2 },
+  chevron: { fontSize: 20 },
+  addBankButton: {
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    marginTop: 4,
   },
-  bankName: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  bankMeta: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  toggleRow: {
+  addBankText: { fontSize: 14, fontWeight: '500' },
+  toggleItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 8,
   },
-  toggleLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  toggleLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  toggleDescription: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  separator: {
-    height: 1,
-    marginVertical: 12,
-  },
+  toggleContent: { flex: 1, marginLeft: 12 },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -434,37 +376,30 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
   },
-  settingIconText: {
-    fontSize: 18,
-  },
-  settingContent: {
-    flex: 1,
-  },
-  settingLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  settingDescription: {
-    fontSize: 11,
-    marginTop: 2,
-  },
-  chevron: {
-    fontSize: 20,
-    fontWeight: '300',
-  },
-  logoutButton: {
+  settingIconText: { fontSize: 18 },
+  settingContent: { flex: 1, marginLeft: 12 },
+  settingLabel: { fontSize: 14, fontWeight: '500' },
+  settingDescription: { fontSize: 11, marginTop: 2 },
+  devButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     padding: 16,
     borderRadius: 12,
+    gap: 12,
+  },
+  devButtonIcon: { fontSize: 24 },
+  devButtonContent: { flex: 1 },
+  devButtonText: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  devButtonSubtext: { color: 'rgba(255,255,255,0.7)', fontSize: 11, marginTop: 2 },
+  signOutButton: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
     alignItems: 'center',
     marginTop: 8,
   },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  bottomPadding: {
-    height: 40,
-  },
+  signOutText: { fontSize: 15, fontWeight: '600' },
+  versionText: { fontSize: 12, textAlign: 'center', marginTop: 16 },
+  bottomPadding: { height: 40 },
 });

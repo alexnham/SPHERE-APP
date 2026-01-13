@@ -16,6 +16,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import DebtDetailScreen from '../screens/DebtDetailScreen';
 import BillsScreen from '../screens/BillsScreen';
 import WeeklyReflectionScreen from '../screens/WeeklyReflectionScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 
 export type RootStackParamList = {
   Main: undefined;
@@ -23,6 +24,7 @@ export type RootStackParamList = {
   DebtDetail: { id: string };
   Bills: undefined;
   WeeklyReflection: undefined;
+  Onboarding: undefined;
 };
 
 export type MainTabParamList = {
@@ -145,6 +147,11 @@ export const AppNavigator = () => {
       <Stack.Screen name="DebtDetail" component={DebtDetailScreen} />
       <Stack.Screen name="Bills" component={BillsScreen} />
       <Stack.Screen name="WeeklyReflection" component={WeeklyReflectionScreen} />
+      <Stack.Screen 
+        name="Onboarding" 
+        component={OnboardingScreen}
+        options={{ animation: 'slide_from_bottom' }}
+      />
     </Stack.Navigator>
   );
 };
