@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { TrendingUp, TrendingDown, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
 import { budgetData, weeklySpendingData } from './constants';
@@ -55,7 +56,11 @@ export const SpendingInsights = ({ colors }: SpendingInsightsProps) => {
             },
           ]}
         >
-          <Text style={{ marginRight: 4 }}>{isSpendingUp ? '📈' : '📉'}</Text>
+          {isSpendingUp ? (
+            <TrendingUp size={14} color="#ef4444" style={{ marginRight: 4 }} />
+          ) : (
+            <TrendingDown size={14} color="#10b981" style={{ marginRight: 4 }} />
+          )}
           <Text
             style={{
               fontSize: 12,
@@ -138,11 +143,18 @@ export const SpendingInsights = ({ colors }: SpendingInsightsProps) => {
                 style={styles.expandButton}
                 onPress={() => setIsExpanded(!isExpanded)}
               >
-                <Text style={[styles.expandButtonText, { color: colors.primary }]}>
-                  {isExpanded
-                    ? '▲ Show less'
-                    : `▼ Show ${pieData.length - INITIAL_ITEMS} more`}
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  {isExpanded ? (
+                    <ChevronUp size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                  ) : (
+                    <ChevronDown size={14} color={colors.primary} style={{ marginRight: 4 }} />
+                  )}
+                  <Text style={[styles.expandButtonText, { color: colors.primary }]}>
+                    {isExpanded
+                      ? 'Show less'
+                      : `Show ${pieData.length - INITIAL_ITEMS} more`}
+                  </Text>
+                </View>
               </TouchableOpacity>
             )}
           </View>

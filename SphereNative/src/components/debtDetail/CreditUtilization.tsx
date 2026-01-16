@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Card } from '../Card';
+import { BarChart3 } from 'lucide-react-native';
 
 interface CreditUtilizationProps {
   utilizationPercent: number;
@@ -15,7 +16,7 @@ export function CreditUtilization({ utilizationPercent }: CreditUtilizationProps
   return (
     <Card>
       <View style={styles.utilizationHeader}>
-        <Text style={styles.utilizationIcon}>📊</Text>
+        <BarChart3 size={18} color={barColor} strokeWidth={2} />
         <Text style={[styles.utilizationLabel, { color: colors.textSecondary }]}>
           Credit Utilization
         </Text>
@@ -44,8 +45,7 @@ export function CreditUtilization({ utilizationPercent }: CreditUtilizationProps
 }
 
 const styles = StyleSheet.create({
-  utilizationHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  utilizationIcon: { fontSize: 16, marginRight: 8 },
+  utilizationHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 },
   utilizationLabel: { flex: 1, fontSize: 13 },
   utilizationPercent: { fontSize: 14, fontWeight: '600' },
   utilizationBar: { height: 8, borderRadius: 4, overflow: 'hidden', marginBottom: 8 },

@@ -7,6 +7,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import { Info, X } from 'lucide-react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface InfoTooltipProps {
@@ -26,7 +27,7 @@ export function InfoTooltip({ title, content, iconSize = 14 }: InfoTooltipProps)
         onPress={() => setVisible(true)}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
       >
-        <Text style={[styles.infoIcon, { fontSize: iconSize }]}>ℹ️</Text>
+        <Info size={iconSize} color={colors.textSecondary} />
       </TouchableOpacity>
 
       <Modal
@@ -47,7 +48,7 @@ export function InfoTooltip({ title, content, iconSize = 14 }: InfoTooltipProps)
             <View style={styles.modalHeader}>
               <Text style={[styles.modalTitle, { color: colors.text }]}>{title}</Text>
               <TouchableOpacity onPress={() => setVisible(false)}>
-                <Text style={{ fontSize: 18, color: colors.textSecondary }}>✕</Text>
+                <X size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalBody}>

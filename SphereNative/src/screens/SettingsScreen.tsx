@@ -6,6 +6,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
@@ -13,6 +15,21 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Card } from '../components/Card';
 import { RootStackParamList } from '../navigation/AppNavigator';
+import {
+  Building2,
+  Moon,
+  Sun,
+  Bell,
+  Fingerprint,
+  User,
+  Lock,
+  BarChart3,
+  HelpCircle,
+  Rocket,
+  ChevronRight,
+  type LucideIcon,
+} from 'lucide-react-native';
+import { supabase } from '../lib/supabase';
 
 // Mock user data
 const mockUser = {
@@ -27,6 +44,14 @@ const mockConnectedBanks = [
   { name: 'Bank of America', accounts: 2, lastSync: '1 day ago' },
 ];
 
+// Icon map for settings
+const settingIconMap: Record<string, LucideIcon> = {
+  user: User,
+  lock: Lock,
+  'bar-chart': BarChart3,
+  help: HelpCircle,
+};
+
 interface SettingItemProps {
   icon: string;
   label: string;
@@ -35,24 +60,28 @@ interface SettingItemProps {
   colors: any;
 }
 
-const SettingItem = ({ icon, label, description, onPress, colors }: SettingItemProps) => (
-  <TouchableOpacity
-    style={[styles.settingItem, { backgroundColor: colors.surface }]}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
-      <Text style={styles.settingIconText}>{icon}</Text>
-    </View>
-    <View style={styles.settingContent}>
-      <Text style={[styles.settingLabel, { color: colors.text }]}>{label}</Text>
-      <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-        {description}
-      </Text>
-    </View>
-    <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
-  </TouchableOpacity>
-);
+const SettingItem = ({ icon, label, description, onPress, colors }: SettingItemProps) => {
+  const IconComponent = settingIconMap[icon];
+  
+  return (
+    <TouchableOpacity
+      style={[styles.settingItem, { backgroundColor: colors.surface }]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
+        {IconComponent && <IconComponent size={20} color={colors.textSecondary} strokeWidth={2} />}
+      </View>
+      <View style={styles.settingContent}>
+        <Text style={[styles.settingLabel, { color: colors.text }]}>{label}</Text>
+        <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+          {description}
+        </Text>
+      </View>
+      <ChevronRight size={20} color={colors.textSecondary} strokeWidth={2} />
+    </TouchableOpacity>
+  );
+};
 
 export default function SettingsScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
@@ -61,11 +90,30 @@ export default function SettingsScreen() {
 
   const [pushNotifications, setPushNotifications] = useState(true);
   const [biometricAuth, setBiometricAuth] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const initials = mockUser.name
     .split(' ')
     .map((n) => n[0])
     .join('');
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        Alert.alert('Sign out failed', error.message || 'Please try again');
+        setSigningOut(false);
+        return;
+      }
+      // Clear navigation stack and go to onboarding
+      navigation.reset({ index: 0, routes: [{ name: 'Onboarding' }] });
+    } catch (err) {
+      Alert.alert('Sign out failed', 'An unexpected error occurred');
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -129,7 +177,7 @@ export default function SettingsScreen() {
               style={[styles.bankItem, { backgroundColor: colors.surface }]}
             >
               <View style={[styles.bankIcon, { backgroundColor: colors.muted }]}>
-                <Text>🏦</Text>
+                <Building2 size={20} color={colors.textSecondary} strokeWidth={2} />
               </View>
               <View style={styles.bankInfo}>
                 <Text style={[styles.bankName, { color: colors.text }]}>
@@ -139,7 +187,7 @@ export default function SettingsScreen() {
                   {bank.accounts} accounts • Synced {bank.lastSync}
                 </Text>
               </View>
-              <Text style={[styles.chevron, { color: colors.textSecondary }]}>›</Text>
+              <ChevronRight size={20} color={colors.textSecondary} strokeWidth={2} />
             </TouchableOpacity>
           ))}
           <TouchableOpacity
@@ -159,7 +207,11 @@ export default function SettingsScreen() {
           {/* Dark Mode Toggle */}
           <View style={[styles.toggleItem, { backgroundColor: colors.surface }]}>
             <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
-              <Text style={styles.settingIconText}>{isDark ? '🌙' : '☀️'}</Text>
+              {isDark ? (
+                <Moon size={20} color={colors.textSecondary} strokeWidth={2} />
+              ) : (
+                <Sun size={20} color={colors.textSecondary} strokeWidth={2} />
+              )}
             </View>
             <View style={styles.toggleContent}>
               <Text style={[styles.settingLabel, { color: colors.text }]}>
@@ -180,7 +232,7 @@ export default function SettingsScreen() {
           {/* Push Notifications */}
           <View style={[styles.toggleItem, { backgroundColor: colors.surface }]}>
             <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
-              <Text style={styles.settingIconText}>🔔</Text>
+              <Bell size={20} color={colors.textSecondary} strokeWidth={2} />
             </View>
             <View style={styles.toggleContent}>
               <Text style={[styles.settingLabel, { color: colors.text }]}>
@@ -201,7 +253,7 @@ export default function SettingsScreen() {
           {/* Biometric Auth */}
           <View style={[styles.toggleItem, { backgroundColor: colors.surface }]}>
             <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
-              <Text style={styles.settingIconText}>🔐</Text>
+              <Fingerprint size={20} color={colors.textSecondary} strokeWidth={2} />
             </View>
             <View style={styles.toggleContent}>
               <Text style={[styles.settingLabel, { color: colors.text }]}>
@@ -226,28 +278,28 @@ export default function SettingsScreen() {
             Account
           </Text>
           <SettingItem
-            icon="👤"
+            icon="user"
             label="Personal Information"
             description="Name, email, phone number"
             onPress={() => {}}
             colors={colors}
           />
           <SettingItem
-            icon="🔒"
+            icon="lock"
             label="Security"
             description="Password, 2FA settings"
             onPress={() => {}}
             colors={colors}
           />
           <SettingItem
-            icon="📊"
+            icon="bar-chart"
             label="Data & Privacy"
             description="Export data, delete account"
             onPress={() => {}}
             colors={colors}
           />
           <SettingItem
-            icon="❓"
+            icon="help"
             label="Help & Support"
             description="FAQ, contact us"
             onPress={() => {}}
@@ -264,7 +316,7 @@ export default function SettingsScreen() {
             style={[styles.devButton, { backgroundColor: colors.primary }]}
             onPress={() => navigation.navigate('Onboarding')}
           >
-            <Text style={styles.devButtonIcon}>🚀</Text>
+            <Rocket size={24} color="#fff" strokeWidth={2} />
             <View style={styles.devButtonContent}>
               <Text style={styles.devButtonText}>Launch Onboarding Flow</Text>
               <Text style={styles.devButtonSubtext}>
@@ -275,8 +327,23 @@ export default function SettingsScreen() {
         </Card>
 
         {/* Sign Out */}
-        <TouchableOpacity style={[styles.signOutButton, { borderColor: colors.border }]}>
-          <Text style={[styles.signOutText, { color: '#ef4444' }]}>Sign Out</Text>
+        <TouchableOpacity
+          style={[
+            styles.signOutButton,
+            {
+              backgroundColor: colors.primary,
+              borderColor: colors.primary,
+            },
+          ]}
+          onPress={handleSignOut}
+          activeOpacity={0.8}
+          disabled={signingOut}
+        >
+          {signingOut ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={[styles.signOutText, { color: '#fff' }]}>Sign Out</Text>
+          )}
         </TouchableOpacity>
 
         <Text style={[styles.versionText, { color: colors.textSecondary }]}>

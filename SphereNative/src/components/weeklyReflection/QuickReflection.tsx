@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
+import { Store, ThumbsUp, Minus, ThumbsDown } from 'lucide-react-native';
 
 interface Transaction {
   id: string;
@@ -34,7 +35,7 @@ export function QuickReflection({ transactions, onFeedback }: QuickReflectionPro
         >
           <View style={styles.transactionHeader}>
             <View style={[styles.transactionIcon, { backgroundColor: `${colors.primary}10` }]}>
-              <Text>🏪</Text>
+              <Store size={16} color={colors.primary} strokeWidth={2} />
             </View>
             <View style={styles.transactionInfo}>
               <Text style={[styles.transactionMerchant, { color: colors.text }]}>
@@ -56,19 +57,28 @@ export function QuickReflection({ transactions, onFeedback }: QuickReflectionPro
               style={[styles.feedbackButton, { backgroundColor: 'rgba(16, 185, 129, 0.1)' }]}
               onPress={() => onFeedback?.(transaction.id, 'yes')}
             >
-              <Text style={{ color: '#10b981', fontSize: 12 }}>👍 Yes</Text>
+              <View style={styles.feedbackContent}>
+                <ThumbsUp size={12} color="#10b981" strokeWidth={2} />
+                <Text style={{ color: '#10b981', fontSize: 12, marginLeft: 4 }}>Yes</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.feedbackButton, { backgroundColor: colors.muted }]}
               onPress={() => onFeedback?.(transaction.id, 'neutral')}
             >
-              <Text style={{ color: colors.textSecondary, fontSize: 12 }}>➖ Neutral</Text>
+              <View style={styles.feedbackContent}>
+                <Minus size={12} color={colors.textSecondary} strokeWidth={2} />
+                <Text style={{ color: colors.textSecondary, fontSize: 12, marginLeft: 4 }}>Neutral</Text>
+              </View>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.feedbackButton, { backgroundColor: 'rgba(239, 68, 68, 0.1)' }]}
               onPress={() => onFeedback?.(transaction.id, 'no')}
             >
-              <Text style={{ color: '#ef4444', fontSize: 12 }}>👎 No</Text>
+              <View style={styles.feedbackContent}>
+                <ThumbsDown size={12} color="#ef4444" strokeWidth={2} />
+                <Text style={{ color: '#ef4444', fontSize: 12, marginLeft: 4 }}>No</Text>
+              </View>
             </TouchableOpacity>
           </View>
         </View>
@@ -96,4 +106,5 @@ const styles = StyleSheet.create({
   feedbackRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   feedbackLabel: { fontSize: 11, marginRight: 4 },
   feedbackButton: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  feedbackContent: { flexDirection: 'row', alignItems: 'center' },
 });

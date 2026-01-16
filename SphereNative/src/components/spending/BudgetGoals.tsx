@@ -3,6 +3,37 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
 import { budgetData } from './constants';
+import { 
+  Target, 
+  Check, 
+  AlertTriangle, 
+  TrendingUp, 
+  TrendingDown, 
+  Lightbulb,
+  ShoppingCart,
+  ShoppingBag,
+  Coffee,
+  Car,
+  Utensils,
+  Fuel,
+  Pill,
+  Laptop,
+  ChevronUp,
+  ChevronDown,
+  type LucideIcon
+} from 'lucide-react-native';
+
+// Category icon map
+const categoryIconMap: Record<string, LucideIcon> = {
+  'shopping-cart': ShoppingCart,
+  'shopping-bag': ShoppingBag,
+  'coffee': Coffee,
+  'car': Car,
+  'utensils': Utensils,
+  'fuel': Fuel,
+  'pill': Pill,
+  'laptop': Laptop,
+};
 
 interface BudgetGoalsProps {
   colors: any;
@@ -41,7 +72,7 @@ export const BudgetGoals = ({ colors }: BudgetGoalsProps) => {
       <View style={styles.budgetHeader}>
         <View style={styles.budgetHeaderLeft}>
           <View style={[styles.targetIcon, { backgroundColor: `${colors.primary}20` }]}>
-            <Text>🎯</Text>
+            <Target size={20} color={colors.primary} strokeWidth={2} />
           </View>
           <View>
             <Text style={[styles.cardTitle, { color: colors.text }]}>
@@ -62,7 +93,11 @@ export const BudgetGoals = ({ colors }: BudgetGoalsProps) => {
             },
           ]}
         >
-          <Text style={{ marginRight: 4 }}>{isOnTrack ? '✓' : '⚠️'}</Text>
+          {isOnTrack ? (
+            <Check size={12} color="#10b981" strokeWidth={3} style={{ marginRight: 4 }} />
+          ) : (
+            <AlertTriangle size={12} color="#f59e0b" strokeWidth={2} style={{ marginRight: 4 }} />
+          )}
           <Text
             style={{
               fontSize: 11,
@@ -97,9 +132,12 @@ export const BudgetGoals = ({ colors }: BudgetGoalsProps) => {
           <Text style={[styles.progressLabelText, { color: colors.textSecondary }]}>
             {overallProgress.toFixed(0)}% used
           </Text>
-          <Text style={[styles.progressLabelText, { color: colors.textSecondary }]}>
-            📈 {expectedProgress.toFixed(0)}% expected
-          </Text>
+          <View style={styles.expectedRow}>
+            <TrendingUp size={11} color={colors.textSecondary} strokeWidth={2} />
+            <Text style={[styles.progressLabelText, { color: colors.textSecondary, marginLeft: 4 }]}>
+              {expectedProgress.toFixed(0)}% expected
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -124,6 +162,11 @@ export const BudgetGoals = ({ colors }: BudgetGoalsProps) => {
         <View style={styles.paceHeader}>
           <Text style={[styles.paceTitle, { color: colors.text }]}>Spending Pace</Text>
           <View style={styles.paceStatus}>
+            {isUnder ? (
+              <TrendingDown size={12} color="#10b981" strokeWidth={2} style={{ marginRight: 4 }} />
+            ) : (
+              <TrendingUp size={12} color={isWarning ? '#f59e0b' : '#ef4444'} strokeWidth={2} style={{ marginRight: 4 }} />
+            )}
             <Text
               style={{
                 fontSize: 12,
@@ -131,7 +174,7 @@ export const BudgetGoals = ({ colors }: BudgetGoalsProps) => {
                 color: isUnder ? '#10b981' : isWarning ? '#f59e0b' : '#ef4444',
               }}
             >
-              {isUnder ? '📉 Under budget' : isWarning ? '📈 Slightly over' : '📈 Over budget'}
+              {isUnder ? 'Under budget' : isWarning ? 'Slightly over' : 'Over budget'}
             </Text>
           </View>
         </View>
@@ -168,16 +211,24 @@ export const BudgetGoals = ({ colors }: BudgetGoalsProps) => {
             },
           ]}
         >
-          <Text
-            style={{
-              fontSize: 11,
-              color: isUnder ? '#10b981' : isWarning ? '#f59e0b' : '#ef4444',
-            }}
-          >
-            {isUnder
-              ? `✓ You're ${formatCurrency(Math.abs(difference))} under your projected spending`
-              : `⚠ You're ${formatCurrency(difference)} (${percentDiff.toFixed(0)}%) over your projected spending`}
-          </Text>
+          <View style={styles.paceDividerContent}>
+            {isUnder ? (
+              <Check size={11} color="#10b981" strokeWidth={3} style={{ marginRight: 4 }} />
+            ) : (
+              <AlertTriangle size={11} color={isWarning ? '#f59e0b' : '#ef4444'} strokeWidth={2} style={{ marginRight: 4 }} />
+            )}
+            <Text
+              style={{
+                fontSize: 11,
+                color: isUnder ? '#10b981' : isWarning ? '#f59e0b' : '#ef4444',
+                flex: 1,
+              }}
+            >
+              {isUnder
+                ? `You're ${formatCurrency(Math.abs(difference))} under your projected spending`
+                : `You're ${formatCurrency(difference)} (${percentDiff.toFixed(0)}%) over your projected spending`}
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -188,12 +239,15 @@ export const BudgetGoals = ({ colors }: BudgetGoalsProps) => {
             const progress = Math.min(100, (category.spent / category.budget) * 100);
             const isOverBudget = category.spent > category.budget;
             const isNearLimit = progress >= 80 && !isOverBudget;
+            const IconComponent = categoryIconMap[category.icon];
 
             return (
               <View key={index} style={styles.categoryBudgetItem}>
                 <View style={styles.categoryBudgetHeader}>
                   <View style={styles.categoryNameRow}>
-                    <Text style={styles.categoryIcon}>{category.icon}</Text>
+                    {IconComponent && (
+                      <IconComponent size={16} color={category.color} strokeWidth={2} style={{ marginRight: 8 }} />
+                    )}
                     <Text style={[styles.categoryBudgetName, { color: colors.text }]}>
                       {category.name}
                     </Text>
@@ -234,9 +288,12 @@ export const BudgetGoals = ({ colors }: BudgetGoalsProps) => {
                   />
                 </View>
                 {isOverBudget && (
-                  <Text style={styles.overBudgetText}>
-                    ⚠️ {formatCurrency(category.spent - category.budget)} over budget
-                  </Text>
+                  <View style={styles.overBudgetRow}>
+                    <AlertTriangle size={11} color="#ef4444" strokeWidth={2} />
+                    <Text style={styles.overBudgetText}>
+                      {formatCurrency(category.spent - category.budget)} over budget
+                    </Text>
+                  </View>
                 )}
               </View>
             );
@@ -248,20 +305,30 @@ export const BudgetGoals = ({ colors }: BudgetGoalsProps) => {
             style={styles.expandButton}
             onPress={() => setIsExpanded(!isExpanded)}
           >
-            <Text style={[styles.expandButtonText, { color: colors.primary }]}>
-              {isExpanded
-                ? '▲ Show less'
-                : `▼ Show ${sortedCategories.length - INITIAL_ITEMS} more`}
-            </Text>
+            <View style={styles.expandButtonContent}>
+              {isExpanded ? (
+                <ChevronUp size={14} color={colors.primary} strokeWidth={2} />
+              ) : (
+                <ChevronDown size={14} color={colors.primary} strokeWidth={2} />
+              )}
+              <Text style={[styles.expandButtonText, { color: colors.primary }]}>
+                {isExpanded
+                  ? 'Show less'
+                  : `Show ${sortedCategories.length - INITIAL_ITEMS} more`}
+              </Text>
+            </View>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Footer insight */}
       <View style={[styles.budgetFooter, { borderTopColor: colors.border }]}>
-        <Text style={[styles.footerText, { color: colors.textSecondary }]}>
-          💡 Your budgets adjust based on your spending patterns. No pressure—just awareness.
-        </Text>
+        <View style={styles.footerContent}>
+          <Lightbulb size={14} color={colors.textSecondary} strokeWidth={2} />
+          <Text style={[styles.footerText, { color: colors.textSecondary }]}>
+            Your budgets adjust based on your spending patterns. No pressure—just awareness.
+          </Text>
+        </View>
       </View>
     </Card>
   );
@@ -335,6 +402,10 @@ const styles = StyleSheet.create({
   progressLabelText: {
     fontSize: 11,
   },
+  expectedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   paceCard: {
     padding: 16,
     borderRadius: 12,
@@ -375,6 +446,10 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     borderTopWidth: 1,
   },
+  paceDividerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   categoryList: {
     marginTop: 8,
   },
@@ -390,10 +465,6 @@ const styles = StyleSheet.create({
   categoryNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  categoryIcon: {
-    fontSize: 16,
-    marginRight: 8,
   },
   categoryBudgetName: {
     fontSize: 14,
@@ -419,14 +490,24 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
+  overBudgetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
   overBudgetText: {
     fontSize: 11,
     color: '#ef4444',
-    marginTop: 4,
   },
   expandButton: {
     alignItems: 'center',
     paddingVertical: 8,
+  },
+  expandButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   expandButtonText: {
     fontSize: 12,
@@ -437,8 +518,15 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     borderTopWidth: 1,
   },
+  footerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
   footerText: {
     fontSize: 12,
     textAlign: 'center',
+    flex: 1,
   },
 });

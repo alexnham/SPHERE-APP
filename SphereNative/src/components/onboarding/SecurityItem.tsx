@@ -1,5 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Lock, Eye, Check, Shield, type LucideIcon } from 'lucide-react-native';
+
+const iconMap: Record<string, LucideIcon> = {
+  lock: Lock,
+  eye: Eye,
+  check: Check,
+  shield: Shield,
+};
 
 interface SecurityItemProps {
   icon: string;
@@ -8,12 +16,22 @@ interface SecurityItemProps {
   colors: any;
 }
 
-export const SecurityItem = ({ icon, text, color, colors }: SecurityItemProps) => (
-  <View style={[styles.container, { backgroundColor: colors.surface }]}>
-    <Text style={[styles.icon, { color }]}>{icon}</Text>
-    <Text style={[styles.text, { color: colors.textSecondary }]}>{text}</Text>
-  </View>
-);
+export const SecurityItem = ({ icon, text, color, colors }: SecurityItemProps) => {
+  const IconComponent = iconMap[icon];
+  
+  return (
+    <View style={[styles.container, { backgroundColor: colors.surface }]}>
+      <View style={styles.iconWrapper}>
+        {IconComponent ? (
+          <IconComponent size={18} color={color} strokeWidth={2} />
+        ) : (
+          <Text style={[styles.iconFallback, { color }]}>{icon}</Text>
+        )}
+      </View>
+      <Text style={[styles.text, { color: colors.textSecondary }]}>{text}</Text>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -23,6 +41,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 12,
   },
-  icon: { fontSize: 18 },
+  iconWrapper: {
+    width: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconFallback: { fontSize: 18 },
   text: { fontSize: 13 },
 });

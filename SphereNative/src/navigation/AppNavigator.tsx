@@ -5,6 +5,13 @@ import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-na
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Header } from '../components/Header';
+import { 
+  LayoutDashboard, 
+  Wallet, 
+  Building2, 
+  CreditCard, 
+  TrendingUp 
+} from 'lucide-react-native';
 
 // Screens
 import OverviewScreen from '../screens/OverviewScreen';
@@ -40,18 +47,20 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 // Tab icon component
 const TabIcon = ({ name, focused }: { name: string; focused: boolean }) => {
-  const icons: Record<string, string> = {
-    Overview: '📊',
-    Spending: '💰',
-    Debts: '🏦',
-    Accounts: '💳',
-    Invest: '📈',
+  const { colors } = useTheme();
+  const iconColor = focused ? colors.primary : colors.textSecondary;
+  const iconSize = 22;
+  
+  const icons: Record<string, React.ReactNode> = {
+    Overview: <LayoutDashboard size={iconSize} color={iconColor} strokeWidth={2} />,
+    Spending: <Wallet size={iconSize} color={iconColor} strokeWidth={2} />,
+    Debts: <Building2 size={iconSize} color={iconColor} strokeWidth={2} />,
+    Accounts: <CreditCard size={iconSize} color={iconColor} strokeWidth={2} />,
+    Invest: <TrendingUp size={iconSize} color={iconColor} strokeWidth={2} />,
   };
   return (
     <View style={styles.iconContainer}>
-      <Text style={[styles.icon, { opacity: focused ? 1 : 0.5 }]}>
-        {icons[name]}
-      </Text>
+      {icons[name]}
     </View>
   );
 };

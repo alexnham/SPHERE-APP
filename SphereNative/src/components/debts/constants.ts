@@ -18,14 +18,14 @@ export const debtTypeLabels: Record<string, string> = {
   loan: 'Loan',
 };
 
-export const debtTypeIcons: Record<string, string> = {
-  credit_card: '💳',
-  student_loan: '🎓',
-  auto_loan: '🚗',
-  mortgage: '🏠',
-  personal_loan: '💰',
-  bnpl: '🛒',
-  loan: '📄',
+export const debtTypeIconNames: Record<string, string> = {
+  credit_card: 'CreditCard',
+  student_loan: 'GraduationCap',
+  auto_loan: 'Car',
+  mortgage: 'Home',
+  personal_loan: 'Banknote',
+  bnpl: 'ShoppingCart',
+  loan: 'FileText',
 };
 
 export type SortOption = 'due_date' | 'amount' | 'apr';

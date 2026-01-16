@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView } from 'react-native';
+import { Clock, Info, X, Lightbulb } from 'lucide-react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { formatCurrency } from '../../lib/utils';
 
@@ -20,14 +21,14 @@ export function CostOfWaiting({ currentBalance, apr }: CostOfWaitingProps) {
     <View style={[styles.costCard, { backgroundColor: 'rgba(245, 158, 11, 0.1)' }]}>
       <View style={styles.costHeader}>
         <View style={styles.costTitleRow}>
-          <Text style={styles.costIcon}>⏱️</Text>
+          <Clock size={18} color="#b45309" style={{ marginRight: 6 }} />
           <Text style={[styles.costTitle, { color: '#b45309' }]}>Cost of Waiting</Text>
         </View>
         <TouchableOpacity
           style={[styles.infoButton, { backgroundColor: 'rgba(245, 158, 11, 0.2)' }]}
           onPress={() => setShowInfo(true)}
         >
-          <Text style={styles.infoIcon}>ℹ️</Text>
+          <Info size={14} color="#b45309" />
         </TouchableOpacity>
       </View>
       <View style={styles.costGrid}>
@@ -70,7 +71,7 @@ export function CostOfWaiting({ currentBalance, apr }: CostOfWaitingProps) {
                 Why does timing matter?
               </Text>
               <TouchableOpacity onPress={() => setShowInfo(false)}>
-                <Text style={{ fontSize: 18, color: colors.textSecondary }}>✕</Text>
+                <X size={18} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -98,9 +99,12 @@ export function CostOfWaiting({ currentBalance, apr }: CostOfWaitingProps) {
               </View>
 
               <View style={[styles.tipBox, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                <Text style={[styles.tipText, { color: colors.textSecondary }]}>
-                  💡 Paying early saves you money and protects your credit score!
-                </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                  <Lightbulb size={14} color="#f59e0b" style={{ marginRight: 6, marginTop: 2 }} />
+                  <Text style={[styles.tipText, { color: colors.textSecondary, flex: 1 }]}>
+                    Paying early saves you money and protects your credit score!
+                  </Text>
+                </View>
               </View>
             </ScrollView>
           </View>

@@ -3,6 +3,23 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
 import { Account } from '../../lib/mockData';
+import { 
+  Building2, 
+  PiggyBank, 
+  Rocket, 
+  TrendingUp, 
+  TrendingDown, 
+  ArrowUpRight, 
+  RefreshCw,
+  type LucideIcon 
+} from 'lucide-react-native';
+
+// Icon map for account types
+const accountIconMap: Record<string, LucideIcon> = {
+  building: Building2,
+  'piggy-bank': PiggyBank,
+  rocket: Rocket,
+};
 
 interface AccountsOverviewProps {
   accounts: Account[];
@@ -30,10 +47,10 @@ export const AccountsOverview = ({
         </Text>
         <View style={styles.overviewActions}>
           <TouchableOpacity style={styles.actionButton}>
-            <Text style={{ color: colors.primary }}>💸</Text>
+            <ArrowUpRight size={18} color={colors.primary} strokeWidth={2} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton}>
-            <Text style={{ color: colors.textSecondary }}>🔄</Text>
+            <RefreshCw size={18} color={colors.textSecondary} strokeWidth={2} />
           </TouchableOpacity>
         </View>
       </View>
@@ -45,7 +62,7 @@ export const AccountsOverview = ({
         </Text>
         <View style={styles.netWorthMeta}>
           <View style={styles.metaItem}>
-            <Text style={styles.metaIcon}>📈</Text>
+            <TrendingUp size={14} color="#10b981" strokeWidth={2} />
             <Text style={[styles.metaLabel, { color: colors.textSecondary }]}>
               Assets:
             </Text>
@@ -54,7 +71,7 @@ export const AccountsOverview = ({
             </Text>
           </View>
           <View style={styles.metaItem}>
-            <Text style={styles.metaIcon}>📉</Text>
+            <TrendingDown size={14} color="#ef4444" strokeWidth={2} />
             <Text style={[styles.metaLabel, { color: colors.textSecondary }]}>
               Debts:
             </Text>
@@ -70,41 +87,44 @@ export const AccountsOverview = ({
         <Text style={[styles.accountsSectionTitle, { color: colors.textSecondary }]}>
           YOUR ACCOUNTS
         </Text>
-        {accounts.map((account) => (
-          <View
-            key={account.id}
-            style={[styles.accountItem, { backgroundColor: colors.surface }]}
-          >
-            <View style={styles.accountLeft}>
-              <View
-                style={[styles.accountIcon, { backgroundColor: `${colors.border}80` }]}
-              >
-                <Text style={styles.accountIconText}>
-                  {accountTypeIcons[account.type] || '🏦'}
-                </Text>
-              </View>
-              <View>
-                <Text style={[styles.accountName, { color: colors.text }]}>
-                  {account.name}
-                </Text>
-                <Text style={[styles.accountInstitution, { color: colors.textSecondary }]}>
-                  {account.institution}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.accountRight}>
-              <Text style={[styles.accountBalance, { color: colors.text }]}>
-                {formatCurrency(account.currentBalance)}
-              </Text>
-              {account.type === 'checking' &&
-                account.availableBalance !== account.currentBalance && (
-                  <Text style={[styles.accountAvailable, { color: colors.textSecondary }]}>
-                    {formatCurrency(account.availableBalance)} available
+        {accounts.map((account) => {
+          const iconKey = accountTypeIcons[account.type] || 'building';
+          const IconComponent = accountIconMap[iconKey] || Building2;
+          
+          return (
+            <View
+              key={account.id}
+              style={[styles.accountItem, { backgroundColor: colors.surface }]}
+            >
+              <View style={styles.accountLeft}>
+                <View
+                  style={[styles.accountIcon, { backgroundColor: `${colors.border}80` }]}
+                >
+                  <IconComponent size={18} color={colors.textSecondary} strokeWidth={2} />
+                </View>
+                <View>
+                  <Text style={[styles.accountName, { color: colors.text }]}>
+                    {account.name}
                   </Text>
-                )}
+                  <Text style={[styles.accountInstitution, { color: colors.textSecondary }]}>
+                    {account.institution}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.accountRight}>
+                <Text style={[styles.accountBalance, { color: colors.text }]}>
+                  {formatCurrency(account.currentBalance)}
+                </Text>
+                {account.type === 'checking' &&
+                  account.availableBalance !== account.currentBalance && (
+                    <Text style={[styles.accountAvailable, { color: colors.textSecondary }]}>
+                      {formatCurrency(account.availableBalance)} available
+                    </Text>
+                  )}
+              </View>
             </View>
-          </View>
-        ))}
+          );
+        })}
       </View>
     </Card>
   );
@@ -145,24 +165,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  metaIcon: {
-    fontSize: 14,
-  },
   metaLabel: {
-    fontSize: 14,
+    fontSize: 12,
   },
   metaValue: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
   },
   accountsSection: {
-    gap: 12,
+    marginTop: 8,
   },
   accountsSectionTitle: {
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.5,
-    marginBottom: 4,
+    marginBottom: 12,
   },
   accountItem: {
     flexDirection: 'row',
@@ -170,28 +187,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 12,
     borderRadius: 12,
+    marginBottom: 8,
   },
   accountLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    flex: 1,
   },
   accountIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
   accountIconText: {
-    fontSize: 18,
+    fontSize: 16,
   },
   accountName: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   accountInstitution: {
-    fontSize: 12,
+    fontSize: 11,
     marginTop: 2,
   },
   accountRight: {
@@ -202,7 +221,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   accountAvailable: {
-    fontSize: 11,
+    fontSize: 10,
     marginTop: 2,
   },
 });

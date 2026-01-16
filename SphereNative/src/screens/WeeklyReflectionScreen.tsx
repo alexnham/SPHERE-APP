@@ -12,6 +12,7 @@ import {
   RepeatedPatterns,
   QuickReflection,
 } from '../components/weeklyReflection';
+import { CheckCircle } from 'lucide-react-native';
 
 export default function WeeklyReflectionScreen() {
   const { colors } = useTheme();
@@ -105,7 +106,10 @@ export default function WeeklyReflectionScreen() {
         <TouchableOpacity
           style={[styles.completeButton, { backgroundColor: colors.primary }]}
         >
-          <Text style={styles.completeButtonText}>✅ Mark Week as Reviewed</Text>
+          <View style={styles.completeButtonContent}>
+            <CheckCircle size={18} color="#fff" strokeWidth={2} />
+            <Text style={styles.completeButtonText}>Mark Week as Reviewed</Text>
+          </View>
         </TouchableOpacity>
 
         <View style={styles.bottomPadding} />
@@ -120,6 +124,7 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   contentContainer: { padding: 16 },
   completeButton: { padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 8 },
+  completeButtonContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   completeButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   bottomPadding: { height: 40 },
 });

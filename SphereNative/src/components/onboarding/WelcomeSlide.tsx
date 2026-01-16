@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { Sparkles, TrendingUp, PiggyBank, Shield, ArrowRight } from 'lucide-react-native';
 import { FeatureItem } from './FeatureItem';
 
 interface WelcomeSlideProps {
@@ -10,7 +11,7 @@ interface WelcomeSlideProps {
 export const WelcomeSlide = ({ colors, onNext }: WelcomeSlideProps) => (
   <View style={styles.container}>
     <View style={[styles.iconCircle, { backgroundColor: `${colors.primary}20` }]}>
-      <Text style={styles.icon}>✨</Text>
+      <Sparkles size={40} color={colors.primary} strokeWidth={1.5} />
     </View>
     <Text style={[styles.title, { color: colors.text }]}>Welcome to Sphere</Text>
     <Text style={[styles.description, { color: colors.textSecondary }]}>
@@ -19,21 +20,21 @@ export const WelcomeSlide = ({ colors, onNext }: WelcomeSlideProps) => (
 
     <View style={styles.features}>
       <FeatureItem
-        icon="📈"
+        icon="trending-up"
         title="Track Spending"
         description="See where your money goes"
         color="#10b981"
         colors={colors}
       />
       <FeatureItem
-        icon="🐷"
+        icon="piggy-bank"
         title="Save Smarter"
         description="Automated savings vaults"
         color="#3b82f6"
         colors={colors}
       />
       <FeatureItem
-        icon="🛡️"
+        icon="shield"
         title="Stay Secure"
         description="Bank-level encryption"
         color="#8b5cf6"
@@ -43,7 +44,7 @@ export const WelcomeSlide = ({ colors, onNext }: WelcomeSlideProps) => (
 
     <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={onNext}>
       <Text style={styles.buttonText}>Get Started</Text>
-      <Text style={styles.buttonArrow}>→</Text>
+      <ArrowRight size={18} color="#fff" strokeWidth={2.5} />
     </TouchableOpacity>
   </View>
 );
@@ -58,7 +59,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 24,
   },
-  icon: { fontSize: 40 },
   title: { fontSize: 28, fontWeight: '700', textAlign: 'center', marginBottom: 12 },
   description: { fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 32, paddingHorizontal: 16 },
   features: { width: '100%', gap: 12, marginBottom: 32 },
@@ -72,5 +72,4 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  buttonArrow: { color: '#fff', fontSize: 16 },
 });

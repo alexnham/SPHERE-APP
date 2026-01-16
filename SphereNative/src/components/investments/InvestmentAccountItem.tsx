@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { formatCurrency } from '../../lib/utils';
 import { InvestmentAccount } from '../../lib/mockData';
+import { TrendingUp, TrendingDown } from 'lucide-react-native';
 
 interface InvestmentAccountItemProps {
   account: InvestmentAccount;
@@ -42,9 +43,11 @@ export const InvestmentAccountItem = ({ account, colors }: InvestmentAccountItem
         </View>
         <View style={styles.accountGainSection}>
           <View style={styles.accountGainRow}>
-            <Text style={{ marginRight: 4 }}>
-              {isAccountPositive ? '📈' : '📉'}
-            </Text>
+            {isAccountPositive ? (
+              <TrendingUp size={14} color="#10b981" strokeWidth={2} style={{ marginRight: 4 }} />
+            ) : (
+              <TrendingDown size={14} color="#ef4444" strokeWidth={2} style={{ marginRight: 4 }} />
+            )}
             <Text
               style={[
                 styles.accountGain,
@@ -78,40 +81,38 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   accountHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 12,
   },
   accountNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 4,
   },
   accountDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     marginRight: 8,
   },
   accountName: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   },
   accountInstitution: {
     fontSize: 11,
+    marginLeft: 16,
   },
   accountFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
   },
   accountBalance: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   accountContributed: {
     fontSize: 11,
-    marginTop: 4,
+    marginTop: 2,
   },
   accountGainSection: {
     alignItems: 'flex-end',
@@ -121,7 +122,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   accountGain: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
   },
   accountGainPercent: {

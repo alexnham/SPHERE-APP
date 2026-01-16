@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { TrendingUp, ArrowRight } from 'lucide-react-native';
 import { GoalItem } from './GoalItem';
 
 interface GoalsSlideProps {
@@ -10,17 +11,17 @@ interface GoalsSlideProps {
 }
 
 const GOALS = [
-  { label: 'Build an emergency fund', icon: '🛡️' },
-  { label: 'Pay off debt faster', icon: '💳' },
-  { label: 'Save for a big purchase', icon: '🏠' },
-  { label: 'Track daily spending', icon: '📊' },
-  { label: 'Invest for the future', icon: '📈' },
+  { label: 'Build an emergency fund', icon: 'shield' },
+  { label: 'Pay off debt faster', icon: 'credit-card' },
+  { label: 'Save for a big purchase', icon: 'home' },
+  { label: 'Track daily spending', icon: 'bar-chart' },
+  { label: 'Invest for the future', icon: 'trending-up' },
 ];
 
 export const GoalsSlide = ({ colors, selectedGoals, onToggleGoal, onNext }: GoalsSlideProps) => (
   <View style={styles.container}>
     <View style={[styles.iconCircle, { backgroundColor: 'rgba(16, 185, 129, 0.2)' }]}>
-      <Text style={styles.icon}>📈</Text>
+      <TrendingUp size={40} color="#10b981" strokeWidth={1.5} />
     </View>
     <Text style={[styles.title, { color: colors.text }]}>What are your goals?</Text>
     <Text style={[styles.description, { color: colors.textSecondary }]}>
@@ -42,7 +43,7 @@ export const GoalsSlide = ({ colors, selectedGoals, onToggleGoal, onNext }: Goal
 
     <TouchableOpacity style={[styles.button, { backgroundColor: colors.primary }]} onPress={onNext}>
       <Text style={styles.buttonText}>Continue</Text>
-      <Text style={styles.buttonArrow}>→</Text>
+      <ArrowRight size={18} color="#fff" strokeWidth={2.5} />
     </TouchableOpacity>
   </View>
 );
@@ -57,7 +58,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 24,
   },
-  icon: { fontSize: 40 },
   title: { fontSize: 28, fontWeight: '700', textAlign: 'center', marginBottom: 12 },
   description: { fontSize: 15, textAlign: 'center', lineHeight: 22, marginBottom: 32, paddingHorizontal: 16 },
   goals: { width: '100%', gap: 10, marginBottom: 24 },
@@ -71,5 +71,4 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   buttonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  buttonArrow: { color: '#fff', fontSize: 16 },
 });

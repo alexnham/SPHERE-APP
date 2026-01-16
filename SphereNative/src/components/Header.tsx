@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { format } from 'date-fns';
 import { useTheme } from '../contexts/ThemeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Bell, Settings } from 'lucide-react-native';
 
 interface HeaderProps {
   onSettingsPress?: () => void;
@@ -51,7 +52,7 @@ export const Header = ({ onSettingsPress, onNotificationsPress }: HeaderProps) =
           style={[styles.iconButton, { backgroundColor: colors.surface }]}
           onPress={onNotificationsPress}
         >
-          <Text style={styles.iconText}>🔔</Text>
+          <Bell size={20} color={colors.text} strokeWidth={2} />
           {/* Notification dot */}
           <View style={[styles.notificationDot, { backgroundColor: colors.primary }]} />
         </TouchableOpacity>
@@ -61,7 +62,7 @@ export const Header = ({ onSettingsPress, onNotificationsPress }: HeaderProps) =
           style={[styles.iconButton, { backgroundColor: colors.surface }]}
           onPress={onSettingsPress}
         >
-          <Text style={styles.iconText}>⚙️</Text>
+          <Settings size={20} color={colors.text} strokeWidth={2} />
         </TouchableOpacity>
       </View>
     </View>

@@ -4,13 +4,27 @@ import { Card } from '../Card';
 import { InfoTooltip } from '../shared';
 import { formatCurrency } from '../../lib/utils';
 import { calculateSafeToSpend } from '../../lib/mockData';
+import { 
+  Shield, 
+  Wallet, 
+  TrendingDown, 
+  Calendar 
+} from 'lucide-react-native';
 
 interface SafeToSpendCardProps {
   colors: any;
 }
 
+// Icon map for breakdown items
+const breakdownIcons: Record<string, React.FC<{size: number, color: string, strokeWidth: number}>> = {
+  available: Wallet,
+  pending: TrendingDown,
+  bills: Calendar,
+  buffer: Shield,
+};
+
 // Breakdown Item Component
-const BreakdownItem = ({ icon, label, value, colors, type }: any) => {
+const BreakdownItem = ({ iconKey, label, value, colors, type }: any) => {
   const getColor = () => {
     switch (type) {
       case 'positive': return colors.text;
@@ -21,11 +35,13 @@ const BreakdownItem = ({ icon, label, value, colors, type }: any) => {
     }
   };
 
+  const IconComponent = breakdownIcons[iconKey];
+
   return (
     <View style={[styles.breakdownItem, { backgroundColor: `${colors.border}40` }]}>
       <View style={styles.breakdownLeft}>
         <View style={[styles.breakdownIcon, { backgroundColor: colors.surface }]}>
-          <Text style={{ fontSize: 12 }}>{icon}</Text>
+          {IconComponent && <IconComponent size={14} color={getColor()} strokeWidth={2} />}
         </View>
         <Text style={[styles.breakdownLabel, { color: colors.textSecondary }]}>{label}</Text>
       </View>
@@ -46,7 +62,7 @@ export const SafeToSpendCard = ({ colors }: SafeToSpendCardProps) => {
       <View style={styles.stsHeader}>
         <View style={styles.stsHeaderLeft}>
           <View style={[styles.stsIcon, { backgroundColor: `${colors.primary}20` }]}>
-            <Text style={styles.stsIconText}>🛡️</Text>
+            <Shield size={18} color={colors.primary} strokeWidth={2} />
           </View>
           <Text style={[styles.stsLabel, { color: colors.textSecondary }]}>Safe to Spend</Text>
           <InfoTooltip
@@ -64,10 +80,10 @@ export const SafeToSpendCard = ({ colors }: SafeToSpendCardProps) => {
 
       {/* Breakdown Items */}
       <View style={styles.breakdownList}>
-        <BreakdownItem icon="💰" label="Available" value={breakdown.liquidAvailable} colors={colors} type="positive" />
-        <BreakdownItem icon="📉" label="Pending" value={-breakdown.pendingOutflows} colors={colors} type="pending" />
-        <BreakdownItem icon="📅" label="Bills (7 days)" value={-breakdown.upcoming7dEssentials} colors={colors} type="committed" />
-        <BreakdownItem icon="🛡️" label="Buffer" value={-breakdown.userBuffer} colors={colors} type="buffer" />
+        <BreakdownItem iconKey="available" label="Available" value={breakdown.liquidAvailable} colors={colors} type="positive" />
+        <BreakdownItem iconKey="pending" label="Pending" value={-breakdown.pendingOutflows} colors={colors} type="pending" />
+        <BreakdownItem iconKey="bills" label="Bills (7 days)" value={-breakdown.upcoming7dEssentials} colors={colors} type="committed" />
+        <BreakdownItem iconKey="buffer" label="Buffer" value={-breakdown.userBuffer} colors={colors} type="buffer" />
       </View>
     </Card>
   );

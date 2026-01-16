@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { ArrowUpDown, ChevronDown } from 'lucide-react-native';
 import { Card } from '../Card';
 import { InfoTooltip } from '../shared';
 import { formatCurrency } from '../../lib/utils';
@@ -82,11 +83,11 @@ export const DebtDashboard = ({
           style={[styles.sortButton, { backgroundColor: colors.surface }]}
           onPress={() => setShowSortMenu(!showSortMenu)}
         >
-          <Text style={[styles.sortIcon, { color: colors.textSecondary }]}>↕️</Text>
+          <ArrowUpDown size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />
           <Text style={[styles.sortText, { color: colors.textSecondary }]}>
             {sortLabels[sortBy]}
           </Text>
-          <Text style={[styles.sortChevron, { color: colors.textSecondary }]}>▼</Text>
+          <ChevronDown size={12} color={colors.textSecondary} style={{ marginLeft: 4 }} />
         </TouchableOpacity>
       </View>
 

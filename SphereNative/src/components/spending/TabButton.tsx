@@ -1,5 +1,11 @@
 import React from 'react';
 import { Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { TrendingUp, Target, type LucideIcon } from 'lucide-react-native';
+
+const iconMap: Record<string, LucideIcon> = {
+  'trending-up': TrendingUp,
+  target: Target,
+};
 
 interface TabButtonProps {
   title: string;
@@ -9,28 +15,33 @@ interface TabButtonProps {
   colors: any;
 }
 
-export const TabButton = ({ title, icon, isActive, onPress, colors }: TabButtonProps) => (
-  <TouchableOpacity
-    style={[
-      styles.tabButton,
-      {
-        backgroundColor: isActive ? colors.primary : colors.surface,
-        borderColor: isActive ? colors.primary : colors.border,
-      },
-    ]}
-    onPress={onPress}
-  >
-    <Text style={{ marginRight: 6 }}>{icon}</Text>
-    <Text
+export const TabButton = ({ title, icon, isActive, onPress, colors }: TabButtonProps) => {
+  const IconComponent = iconMap[icon];
+  const iconColor = isActive ? '#fff' : colors.textSecondary;
+  
+  return (
+    <TouchableOpacity
       style={[
-        styles.tabButtonText,
-        { color: isActive ? '#fff' : colors.textSecondary },
+        styles.tabButton,
+        {
+          backgroundColor: isActive ? colors.primary : colors.surface,
+          borderColor: isActive ? colors.primary : colors.border,
+        },
       ]}
+      onPress={onPress}
     >
-      {title}
-    </Text>
-  </TouchableOpacity>
-);
+      {IconComponent && <IconComponent size={16} color={iconColor} strokeWidth={2} style={{ marginRight: 6 }} />}
+      <Text
+        style={[
+          styles.tabButtonText,
+          { color: isActive ? '#fff' : colors.textSecondary },
+        ]}
+      >
+        {title}
+      </Text>
+    </TouchableOpacity>
+  );
+};
 
 const styles = StyleSheet.create({
   tabButton: {

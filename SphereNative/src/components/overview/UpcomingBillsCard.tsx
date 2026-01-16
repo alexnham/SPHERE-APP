@@ -6,22 +6,36 @@ import { recurringCharges } from '../../lib/mockData';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import { 
+  Calendar, 
+  Tv, 
+  Zap, 
+  Dumbbell, 
+  Smartphone, 
+  Utensils, 
+  Car, 
+  FileText,
+  type LucideIcon 
+} from 'lucide-react-native';
 
 interface UpcomingBillsCardProps {
   colors: any;
 }
 
-const getCategoryIcon = (category: string) => {
-  const map: Record<string, string> = {
-    Entertainment: '📺',
-    'Bills & Utilities': '⚡',
-    Utilities: '⚡',
-    Health: '💪',
-    Tech: '📱',
-    Food: '🍽️',
-    Transport: '🚗',
-  };
-  return map[category] || '📄';
+// Icon map for categories
+const categoryIconMap: Record<string, LucideIcon> = {
+  Entertainment: Tv,
+  'Bills & Utilities': Zap,
+  Utilities: Zap,
+  Health: Dumbbell,
+  Tech: Smartphone,
+  Food: Utensils,
+  Transport: Car,
+};
+
+const getCategoryIcon = (category: string, color: string) => {
+  const IconComponent = categoryIconMap[category] || FileText;
+  return <IconComponent size={18} color={color} strokeWidth={2} />;
 };
 
 const getCadenceLabel = (cadence: string) => {
@@ -51,7 +65,7 @@ export const UpcomingBillsCard = ({ colors }: UpcomingBillsCardProps) => {
       {/* Header */}
       <View style={styles.billsHeader}>
         <View style={styles.billsHeaderLeft}>
-          <Text style={{ fontSize: 16, color: colors.primary }}>📅</Text>
+          <Calendar size={18} color={colors.primary} strokeWidth={2} />
           <Text style={[styles.cardTitle, { color: colors.text }]}>Upcoming Bills</Text>
         </View>
         <View style={styles.billsHeaderRight}>
@@ -75,7 +89,7 @@ export const UpcomingBillsCard = ({ colors }: UpcomingBillsCardProps) => {
             >
               <View style={styles.billLeft}>
                 <View style={[styles.billIcon, { backgroundColor: `${colors.border}80` }]}>
-                  <Text>{getCategoryIcon(bill.category)}</Text>
+                  {getCategoryIcon(bill.category, colors.textSecondary)}
                 </View>
                 <View>
                   <Text style={[styles.billName, { color: colors.text }]}>{bill.merchant}</Text>

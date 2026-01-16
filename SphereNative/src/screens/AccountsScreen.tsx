@@ -8,6 +8,7 @@ import {
   AccountsOverview,
   SavingsVaults,
 } from '../components/accounts';
+import { Building2, PiggyBank, Rocket } from 'lucide-react-native';
 
 // Calculate totals
 const totalAssets = accounts.reduce((sum, a) => sum + a.currentBalance, 0);
@@ -21,11 +22,11 @@ const accountTypeColors: Record<string, string> = {
   investment: '#f59e0b',
 };
 
-// Account type icons
+// Account type icons - now using lucide icon names
 const accountTypeIcons: Record<string, string> = {
-  checking: '🏦',
-  savings: '🐷',
-  investment: '🚀',
+  checking: 'building',
+  savings: 'piggy-bank',
+  investment: 'rocket',
 };
 
 // Group accounts by type

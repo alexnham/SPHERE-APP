@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
+import { BarChart3 } from 'lucide-react-native';
 
 interface CategoryBreakdownProps {
   categories: [string, number][];
@@ -14,9 +15,12 @@ export function CategoryBreakdown({ categories, totalSpend }: CategoryBreakdownP
 
   return (
     <Card>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        📊 Where It Went
-      </Text>
+      <View style={styles.titleRow}>
+        <BarChart3 size={18} color={colors.primary} strokeWidth={2} />
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          Where It Went
+        </Text>
+      </View>
       {categories.map(([category, amount]) => {
         const percentage = totalSpend > 0 ? (amount / totalSpend) * 100 : 0;
         return (
@@ -43,7 +47,8 @@ export function CategoryBreakdown({ categories, totalSpend }: CategoryBreakdownP
 }
 
 const styles = StyleSheet.create({
-  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: '600' },
   categoryItem: { marginBottom: 12 },
   categoryHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   categoryName: { fontSize: 14, fontWeight: '500' },

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
+import { TrendingUp, TrendingDown } from 'lucide-react-native';
 
 interface NetWorthCardProps {
   totalAssets: number;
@@ -31,7 +32,7 @@ export const NetWorthCard = ({ totalAssets, totalLiabilities, colors }: NetWorth
         {/* Assets Bar */}
         <View style={styles.barRow}>
           <View style={styles.barLabelRow}>
-            <Text style={styles.barIcon}>📈</Text>
+            <TrendingUp size={18} color="#10b981" strokeWidth={2} style={{ marginRight: 8 }} />
             <View style={styles.barLabelContent}>
               <View style={styles.barLabelTop}>
                 <Text style={[styles.barLabelText, { color: colors.textSecondary }]}>
@@ -56,7 +57,7 @@ export const NetWorthCard = ({ totalAssets, totalLiabilities, colors }: NetWorth
         {/* Liabilities Bar */}
         <View style={styles.barRow}>
           <View style={styles.barLabelRow}>
-            <Text style={styles.barIcon}>📉</Text>
+            <TrendingDown size={18} color="#ef4444" strokeWidth={2} style={{ marginRight: 8 }} />
             <View style={styles.barLabelContent}>
               <View style={styles.barLabelTop}>
                 <Text style={[styles.barLabelText, { color: colors.textSecondary }]}>

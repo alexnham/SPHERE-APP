@@ -4,6 +4,7 @@ import Slider from '@react-native-community/slider';
 import { Card } from '../Card';
 import { InfoTooltip } from '../shared';
 import { formatCurrency } from '../../lib/utils';
+import { Umbrella, Settings, Sparkles, X } from 'lucide-react-native';
 
 interface SavingsVaultsProps {
   colors: any;
@@ -26,7 +27,7 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
       <View style={styles.vaultHeader}>
         <View style={styles.vaultHeaderLeft}>
           <View style={[styles.vaultIcon, { backgroundColor: `${colors.border}80` }]}>
-            <Text>☂️</Text>
+            <Umbrella size={18} color={colors.textSecondary} strokeWidth={2} />
           </View>
           <Text style={[styles.vaultLabel, { color: colors.textSecondary }]}>
             Rainy Day Buffer
@@ -40,7 +41,7 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
           style={styles.settingsButton}
           onPress={() => setShowSettings(true)}
         >
-          <Text style={{ color: colors.textSecondary }}>⚙️</Text>
+          <Settings size={18} color={colors.textSecondary} strokeWidth={2} />
         </TouchableOpacity>
       </View>
 
@@ -77,7 +78,7 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
             </Text>
           </View>
           <View style={styles.roundUpRight}>
-            <Text style={styles.sparkle}>✨</Text>
+            <Sparkles size={14} color="#f59e0b" strokeWidth={2} style={{ marginRight: 4 }} />
             <Text style={styles.roundUpAmount}>+$12</Text>
           </View>
         </View>
@@ -97,7 +98,7 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
                 Round-up Settings
               </Text>
               <TouchableOpacity onPress={() => setShowSettings(false)}>
-                <Text style={{ fontSize: 20, color: colors.textSecondary }}>✕</Text>
+                <X size={22} color={colors.textSecondary} strokeWidth={2} />
               </TouchableOpacity>
             </View>
 

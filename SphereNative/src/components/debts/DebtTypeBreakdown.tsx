@@ -1,14 +1,34 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import {
+  CreditCard,
+  GraduationCap,
+  Car,
+  Home,
+  Banknote,
+  ShoppingCart,
+  FileText,
+} from 'lucide-react-native';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
-import { debtTypeColors, debtTypeLabels, debtTypeIcons } from './constants';
+import { debtTypeColors, debtTypeLabels, debtTypeIconNames } from './constants';
 
 interface DebtTypeBreakdownProps {
   debtByType: Record<string, number>;
   totalDebt: number;
   colors: any;
 }
+
+// Icon map for debt types
+const debtTypeIconMap: Record<string, React.ComponentType<any>> = {
+  CreditCard,
+  GraduationCap,
+  Car,
+  Home,
+  Banknote,
+  ShoppingCart,
+  FileText,
+};
 
 export const DebtTypeBreakdown = ({ debtByType, totalDebt, colors }: DebtTypeBreakdownProps) => {
   const sortedTypes = Object.entries(debtByType).sort(([, a], [, b]) => b - a);
@@ -21,13 +41,16 @@ export const DebtTypeBreakdown = ({ debtByType, totalDebt, colors }: DebtTypeBre
       <View style={styles.breakdownList}>
         {sortedTypes.map(([type, amount]) => {
           const percent = (amount / totalDebt) * 100;
+          const iconName = debtTypeIconNames[type] || 'CreditCard';
+          const IconComponent = debtTypeIconMap[iconName] || CreditCard;
+          
           return (
             <View key={type} style={styles.breakdownItem}>
               <View style={styles.breakdownHeader}>
                 <View style={styles.breakdownLeft}>
-                  <Text style={styles.breakdownIcon}>
-                    {debtTypeIcons[type] || '💳'}
-                  </Text>
+                  <View style={styles.breakdownIcon}>
+                    <IconComponent size={16} color={colors.textSecondary} />
+                  </View>
                   <Text style={[styles.breakdownName, { color: colors.text }]}>
                     {debtTypeLabels[type] || type.replace('_', ' ')}
                   </Text>
@@ -78,7 +101,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   breakdownIcon: {
-    fontSize: 16,
     marginRight: 8,
   },
   breakdownName: {

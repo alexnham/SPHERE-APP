@@ -68,14 +68,14 @@ export default function BillsScreen() {
         <BillsSummary totalUpcoming={totalUpcoming} totalMonthly={totalMonthly} />
 
         <BillsList
-          title="⏰ Due This Week"
+          title="Due This Week"
           bills={thisWeek}
           acknowledgedBills={acknowledgedBills}
           showAckButton
           onAcknowledge={acknowledgeBill}
         />
 
-        <BillsList title="📅 Coming Up Later" bills={laterBills} />
+        <BillsList title="Coming Up Later" bills={laterBills} />
 
         <View style={styles.bottomPadding} />
       </ScrollView>

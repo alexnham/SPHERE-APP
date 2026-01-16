@@ -30,14 +30,14 @@ export default function SpendingScreen() {
       <View style={styles.tabsContainer}>
         <TabButton
           title="Spending"
-          icon="📈"
+          icon="trending-up"
           isActive={activeTab === 'spending'}
           onPress={() => setActiveTab('spending')}
           colors={colors}
         />
         <TabButton
           title="Budget"
-          icon="🎯"
+          icon="target"
           isActive={activeTab === 'budget'}
           onPress={() => setActiveTab('budget')}
           colors={colors}

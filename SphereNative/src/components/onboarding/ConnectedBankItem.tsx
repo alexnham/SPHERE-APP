@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { Check } from 'lucide-react-native';
 
 interface ConnectedBankItemProps {
   name: string;
@@ -9,7 +10,7 @@ interface ConnectedBankItemProps {
 export const ConnectedBankItem = ({ name, colors }: ConnectedBankItemProps) => (
   <View style={styles.container}>
     <View style={styles.iconWrapper}>
-      <Text style={styles.icon}>✓</Text>
+      <Check size={18} color="#10b981" strokeWidth={3} />
     </View>
     <View>
       <Text style={[styles.name, { color: colors.text }]}>{name}</Text>
@@ -37,7 +38,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(16, 185, 129, 0.2)',
   },
-  icon: { color: '#10b981', fontWeight: '600' },
   name: { fontSize: 14, fontWeight: '500' },
   status: { color: '#10b981', fontSize: 12 },
 });

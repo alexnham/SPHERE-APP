@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
+import { RefreshCw } from 'lucide-react-native';
 
 interface MerchantData {
   count: number;
@@ -20,9 +21,12 @@ export function RepeatedPatterns({ merchants }: RepeatedPatternsProps) {
 
   return (
     <Card>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        🔄 What Repeated
-      </Text>
+      <View style={styles.titleRow}>
+        <RefreshCw size={18} color={colors.primary} strokeWidth={2} />
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          What Repeated
+        </Text>
+      </View>
       {merchants.map(([merchant, data]) => (
         <View
           key={merchant}
@@ -44,7 +48,8 @@ export function RepeatedPatterns({ merchants }: RepeatedPatternsProps) {
 }
 
 const styles = StyleSheet.create({
-  sectionTitle: { fontSize: 16, fontWeight: '600', marginBottom: 12 },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: '600' },
   merchantItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',

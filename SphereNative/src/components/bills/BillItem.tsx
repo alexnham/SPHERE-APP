@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { format } from 'date-fns';
 import { useTheme } from '../../contexts/ThemeContext';
 import { formatCurrency } from '../../lib/utils';
-import { getCategoryIcon } from './constants';
+import { categoryIconMap, DefaultCategoryIcon } from './constants';
+import { RefreshCw, Check } from 'lucide-react-native';
 
 interface BillItemProps {
   id: string;
@@ -31,6 +32,8 @@ export function BillItem({
   onAcknowledge,
 }: BillItemProps) {
   const { colors } = useTheme();
+  
+  const IconComponent = categoryIconMap[category] || DefaultCategoryIcon;
 
   const getDaysText = () => {
     if (daysUntil === 0) return 'Today';
@@ -50,20 +53,23 @@ export function BillItem({
       ]}
     >
       <View style={[styles.billIcon, { backgroundColor: colors.muted }]}>
-        <Text>{getCategoryIcon(category)}</Text>
+        <IconComponent size={18} color={colors.textSecondary} strokeWidth={2} />
       </View>
       <View style={styles.billInfo}>
         <View style={styles.billNameRow}>
           <Text style={[styles.billName, { color: colors.text }]}>{merchant}</Text>
           {isAcknowledged && (
             <View style={[styles.checkBadge, { backgroundColor: `${colors.primary}20` }]}>
-              <Text style={{ color: colors.primary, fontSize: 10 }}>✓</Text>
+              <Check size={10} color={colors.primary} strokeWidth={3} />
             </View>
           )}
         </View>
-        <Text style={[styles.billMeta, { color: colors.textSecondary }]}>
-          🔄 {cadence} • {format(nextDate, 'MMM d')}
-        </Text>
+        <View style={styles.billMetaRow}>
+          <RefreshCw size={11} color={colors.textSecondary} strokeWidth={2} />
+          <Text style={[styles.billMeta, { color: colors.textSecondary }]}>
+            {cadence} • {format(nextDate, 'MMM d')}
+          </Text>
+        </View>
       </View>
       <View style={styles.billRight}>
         <Text style={[styles.billAmount, { color: colors.text }]}>
@@ -78,12 +84,12 @@ export function BillItem({
           {showAckButton ? getDaysText() : `${format(nextDate, 'MMM d')} (${daysUntil} days)`}
         </Text>
       </View>
-      {showAckButton && !isAcknowledged && daysUntil <= 3 && onAcknowledge && (
+      {showAckButton && !isAcknowledged && (
         <TouchableOpacity
-          style={[styles.ackButton, { backgroundColor: colors.muted }]}
-          onPress={() => onAcknowledge(id)}
+          style={[styles.ackButton, { backgroundColor: `${colors.primary}15` }]}
+          onPress={() => onAcknowledge?.(id)}
         >
-          <Text style={{ color: colors.textSecondary }}>✓</Text>
+          <Check size={16} color={colors.primary} strokeWidth={2.5} />
         </TouchableOpacity>
       )}
     </View>
@@ -99,30 +105,32 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   billIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   billInfo: { flex: 1, marginLeft: 12 },
-  billNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  billNameRow: { flexDirection: 'row', alignItems: 'center' },
   billName: { fontSize: 14, fontWeight: '500' },
   checkBadge: {
+    marginLeft: 6,
     width: 16,
     height: 16,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  billMeta: { fontSize: 11, marginTop: 2 },
+  billMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 2 },
+  billMeta: { fontSize: 11 },
   billRight: { alignItems: 'flex-end', marginRight: 8 },
   billAmount: { fontSize: 14, fontWeight: '600' },
   billDays: { fontSize: 11, marginTop: 2 },
   ackButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },

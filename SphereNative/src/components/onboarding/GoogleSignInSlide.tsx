@@ -1,39 +1,60 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Check } from 'lucide-react-native';
+import { GoogleIcon } from '../shared/GoogleIcon';
 
 interface GoogleSignInSlideProps {
   colors: any;
   isLoading: boolean;
   onSignIn: () => void;
+  userEmail?: string | null;
+  userName?: string | null;
 }
 
-export const GoogleSignInSlide = ({ colors, isLoading, onSignIn }: GoogleSignInSlideProps) => (
+export const GoogleSignInSlide = ({ colors, isLoading, onSignIn, userEmail, userName }: GoogleSignInSlideProps) => (
   <View style={styles.container}>
     <View style={styles.iconCircle}>
-      <Text style={styles.googleLogo}>G</Text>
+      <GoogleIcon size={40} />
     </View>
-    <Text style={[styles.title, { color: colors.text }]}>Sign in with Google</Text>
+    <Text style={[styles.title, { color: colors.text }]}>
+      {userEmail ? 'Signed in!' : 'Sign in with Google'}
+    </Text>
     <Text style={[styles.description, { color: colors.textSecondary }]}>
-      Securely sign in with your Google account. We'll never post anything without your permission.
+      {userEmail 
+        ? `Welcome, ${userName || userEmail}! Your account is connected.`
+        : "Securely sign in with your Google account. We'll never post anything without your permission."
+      }
     </Text>
 
-    <TouchableOpacity
-      style={[styles.googleButton, { borderColor: colors.border }]}
-      onPress={onSignIn}
-      disabled={isLoading}
-    >
-      {isLoading ? (
-        <>
-          <ActivityIndicator color="#4285F4" style={{ marginRight: 8 }} />
-          <Text style={styles.googleButtonText}>Signing in...</Text>
-        </>
-      ) : (
-        <>
-          <Text style={styles.googleButtonIcon}>G</Text>
-          <Text style={styles.googleButtonText}>Continue with Google</Text>
-        </>
-      )}
-    </TouchableOpacity>
+    {userEmail ? (
+      <View style={[styles.successContainer, { backgroundColor: colors.surface }]}>
+        <View style={styles.successIcon}>
+          <Check size={24} color="#fff" strokeWidth={3} />
+        </View>
+        <View style={styles.successTextContainer}>
+          <Text style={[styles.successTitle, { color: colors.text }]}>{userName || 'User'}</Text>
+          <Text style={[styles.successEmail, { color: colors.textSecondary }]}>{userEmail}</Text>
+        </View>
+      </View>
+    ) : (
+      <TouchableOpacity
+        style={[styles.googleButton, { borderColor: colors.border }]}
+        onPress={onSignIn}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <>
+            <ActivityIndicator color="#4285F4" style={{ marginRight: 8 }} />
+            <Text style={styles.googleButtonText}>Signing in...</Text>
+          </>
+        ) : (
+          <>
+            <GoogleIcon size={20} />
+            <Text style={styles.googleButtonText}>Continue with Google</Text>
+          </>
+        )}
+      </TouchableOpacity>
+    )}
 
     <Text style={[styles.terms, { color: colors.textSecondary }]}>
       By continuing, you agree to our Terms of Service and Privacy Policy
@@ -80,4 +101,32 @@ const styles = StyleSheet.create({
   googleButtonIcon: { fontSize: 18, fontWeight: '700', color: '#4285F4' },
   googleButtonText: { fontSize: 15, fontWeight: '600', color: '#333' },
   terms: { fontSize: 11, textAlign: 'center', paddingHorizontal: 24 },
+  successContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    padding: 16,
+    borderRadius: 14,
+    marginBottom: 24,
+    gap: 12,
+  },
+  successIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#10b981',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  successTextContainer: {
+    flex: 1,
+  },
+  successTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  successEmail: {
+    fontSize: 13,
+    marginTop: 2,
+  },
 });

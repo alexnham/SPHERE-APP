@@ -7,6 +7,7 @@ import { MiniSparkline } from './MiniSparkline';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
+import { Sparkles, BarChart3, PartyPopper } from 'lucide-react-native';
 
 interface WeeklyInsightCardProps {
   colors: any;
@@ -34,7 +35,7 @@ export const WeeklyInsightCard = ({ colors }: WeeklyInsightCardProps) => {
         {/* Header */}
         <View style={styles.insightHeader}>
           <View style={styles.insightHeaderLeft}>
-            <Text style={{ fontSize: 16 }}>✨</Text>
+            <Sparkles size={18} color={colors.primary} strokeWidth={2} />
             <Text style={[styles.cardTitle, { color: colors.text }]}>Weekly Insight</Text>
           </View>
         </View>
@@ -78,11 +79,18 @@ export const WeeklyInsightCard = ({ colors }: WeeklyInsightCardProps) => {
 
         {/* Message */}
         <View style={[styles.insightMessage, { backgroundColor: colors.surface }]}>
-          <Text style={[styles.insightMessageText, { color: colors.textSecondary }]}>
-            {isDown
-              ? "🎉 Great job! You're spending less than last week."
-              : "📊 Your spending is up this week. Check your transactions."}
-          </Text>
+          <View style={styles.messageContent}>
+            {isDown ? (
+              <PartyPopper size={14} color="#10b981" strokeWidth={2} style={{ marginRight: 6 }} />
+            ) : (
+              <BarChart3 size={14} color={colors.textSecondary} strokeWidth={2} style={{ marginRight: 6 }} />
+            )}
+            <Text style={[styles.insightMessageText, { color: colors.textSecondary }]}>
+              {isDown
+                ? "Great job! You're spending less than last week."
+                : "Your spending is up this week. Check your transactions."}
+            </Text>
+          </View>
         </View>
       </Card>
     </TouchableOpacity>
@@ -121,16 +129,16 @@ const styles = StyleSheet.create({
   insightStats: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
   },
   insightAmount: {
     fontSize: 24,
     fontWeight: '700',
   },
   insightBadge: {
+    marginLeft: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 8,
   },
   insightRight: {
     marginLeft: 16,
@@ -139,8 +147,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 10,
   },
+  messageContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   insightMessageText: {
     fontSize: 13,
-    textAlign: 'center',
+    flex: 1,
   },
 });

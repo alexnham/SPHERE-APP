@@ -1,14 +1,35 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import {
+  CreditCard,
+  GraduationCap,
+  Car,
+  Home,
+  Banknote,
+  ShoppingCart,
+  FileText,
+  ChevronRight,
+} from 'lucide-react-native';
 import { formatCurrency } from '../../lib/utils';
 import { Liability } from '../../lib/mockData';
-import { debtTypeIcons, debtTypeLabels } from './constants';
+import { debtTypeIconNames, debtTypeLabels } from './constants';
 
 interface DebtItemProps {
   debt: Liability;
   colors: any;
   onPress: () => void;
 }
+
+// Icon map for debt types
+const debtTypeIconMap: Record<string, React.ComponentType<any>> = {
+  CreditCard,
+  GraduationCap,
+  Car,
+  Home,
+  Banknote,
+  ShoppingCart,
+  FileText,
+};
 
 export const DebtItem = ({ debt, colors, onPress }: DebtItemProps) => {
   // Calculate days until due
@@ -41,6 +62,10 @@ export const DebtItem = ({ debt, colors, onPress }: DebtItemProps) => {
   const urgency = getUrgencyState();
   const displayAmount = debt.minimumPayment || debt.currentBalance;
 
+  // Get icon component
+  const iconName = debtTypeIconNames[debt.type] || 'CreditCard';
+  const IconComponent = debtTypeIconMap[iconName] || CreditCard;
+
   return (
     <TouchableOpacity
       style={[
@@ -53,9 +78,7 @@ export const DebtItem = ({ debt, colors, onPress }: DebtItemProps) => {
       <View style={styles.debtItemContent}>
         {/* Icon */}
         <View style={[styles.debtIcon, { backgroundColor: `${colors.border}80` }]}>
-          <Text style={styles.debtIconText}>
-            {debtTypeIcons[debt.type] || '💳'}
-          </Text>
+          <IconComponent size={20} color={colors.textSecondary} />
         </View>
 
         {/* Main content */}

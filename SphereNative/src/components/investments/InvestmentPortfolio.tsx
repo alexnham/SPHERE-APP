@@ -15,6 +15,7 @@ import {
   fiveYearProjection,
   tenYearProjection,
 } from './constants';
+import { Lock, TrendingUp, TrendingDown, ChevronUp, ChevronDown, BarChart3 } from 'lucide-react-native';
 
 interface InvestmentPortfolioProps {
   colors: any;
@@ -37,7 +38,7 @@ export const InvestmentPortfolio = ({ colors }: InvestmentPortfolioProps) => {
         </View>
         <View style={styles.headerRight}>
           <View style={styles.lowDopamineTag}>
-            <Text style={{ marginRight: 4 }}>🔒</Text>
+            <Lock size={12} color={colors.textSecondary} strokeWidth={2} style={{ marginRight: 4 }} />
             <Text style={[styles.lowDopamineText, { color: colors.textSecondary }]}>
               Low-dopamine
             </Text>
@@ -64,9 +65,11 @@ export const InvestmentPortfolio = ({ colors }: InvestmentPortfolioProps) => {
             {formatCurrency(portfolioValue)}
           </Text>
           <View style={styles.expandIcon}>
-            <Text style={{ color: colors.textSecondary }}>
-              {expanded ? '▲' : '▼'}
-            </Text>
+            {expanded ? (
+              <ChevronUp size={16} color={colors.textSecondary} strokeWidth={2} />
+            ) : (
+              <ChevronDown size={16} color={colors.textSecondary} strokeWidth={2} />
+            )}
           </View>
         </View>
 
@@ -94,7 +97,11 @@ export const InvestmentPortfolio = ({ colors }: InvestmentPortfolioProps) => {
               {isPositive ? '+' : ''}
               {formatCurrency(totalGain)}
             </Text>
-            <Text style={{ marginLeft: 8 }}>{isPositive ? '📈' : '📉'}</Text>
+            {isPositive ? (
+              <TrendingUp size={16} color="#10b981" strokeWidth={2} style={{ marginLeft: 8 }} />
+            ) : (
+              <TrendingDown size={16} color="#ef4444" strokeWidth={2} style={{ marginLeft: 8 }} />
+            )}
           </View>
           <Text
             style={[
@@ -133,9 +140,12 @@ export const InvestmentPortfolio = ({ colors }: InvestmentPortfolioProps) => {
 
           {/* Projections */}
           <View style={[styles.projectionsCard, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.projectionsTitle, { color: colors.text }]}>
-              📊 Future Projections
-            </Text>
+            <View style={styles.projectionsTitleRow}>
+              <BarChart3 size={16} color={colors.text} strokeWidth={2} />
+              <Text style={[styles.projectionsTitle, { color: colors.text }]}>
+                Future Projections
+              </Text>
+            </View>
             <Text style={[styles.projectionsNote, { color: colors.textSecondary }]}>
               Based on 7% average annual return
             </Text>
@@ -242,10 +252,15 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
   },
+  projectionsTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   projectionsTitle: {
     fontSize: 14,
     fontWeight: '600',
-    marginBottom: 4,
   },
   projectionsNote: {
     fontSize: 11,

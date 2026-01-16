@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
+import { Banknote, TrendingDown } from 'lucide-react-native';
 
 interface BalanceOverviewProps {
   currentBalance: number;
@@ -15,7 +16,7 @@ export function BalanceOverview({ currentBalance, minimumPayment }: BalanceOverv
   return (
     <View style={styles.statsGrid}>
       <Card style={styles.statCard}>
-        <Text style={styles.statIcon}>💵</Text>
+        <Banknote size={22} color={colors.primary} strokeWidth={2} />
         <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
           Current Balance
         </Text>
@@ -26,7 +27,7 @@ export function BalanceOverview({ currentBalance, minimumPayment }: BalanceOverv
 
       {minimumPayment !== undefined && (
         <Card style={styles.statCard}>
-          <Text style={styles.statIcon}>📉</Text>
+          <TrendingDown size={22} color="#10b981" strokeWidth={2} />
           <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
             Minimum Payment
           </Text>
@@ -42,7 +43,6 @@ export function BalanceOverview({ currentBalance, minimumPayment }: BalanceOverv
 const styles = StyleSheet.create({
   statsGrid: { flexDirection: 'row', gap: 12, marginBottom: 12 },
   statCard: { flex: 1, alignItems: 'center', padding: 16 },
-  statIcon: { fontSize: 20, marginBottom: 8 },
-  statLabel: { fontSize: 12, marginBottom: 4 },
+  statLabel: { fontSize: 12, marginBottom: 4, marginTop: 8 },
   statValue: { fontSize: 20, fontWeight: '700' },
 });

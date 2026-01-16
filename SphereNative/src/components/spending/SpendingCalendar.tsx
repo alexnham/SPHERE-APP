@@ -7,6 +7,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
+import { X } from 'lucide-react-native';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
 import { transactions } from '../../lib/mockData';
@@ -266,7 +267,7 @@ export const SpendingCalendar = ({ colors }: SpendingCalendarProps) => {
                 )}
               </View>
               <TouchableOpacity onPress={() => setShowModal(false)}>
-                <Text style={{ fontSize: 20, color: colors.textSecondary }}>✕</Text>
+                <X size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
             {selectedDayTransactions.length > 0 ? (

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../contexts/ThemeContext';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
+import { TrendingDown, TrendingUp, PartyPopper } from 'lucide-react-native';
 
 interface WeekSummaryProps {
   totalSpend: number;
@@ -21,7 +22,11 @@ export function WeekSummary({ totalSpend, percentChange }: WeekSummaryProps) {
       }}
     >
       <View style={styles.summaryHeader}>
-        <Text style={styles.summaryIcon}>{isPositive ? '📉' : '📈'}</Text>
+        {isPositive ? (
+          <TrendingDown size={22} color="#10b981" strokeWidth={2} />
+        ) : (
+          <TrendingUp size={22} color="#f59e0b" strokeWidth={2} />
+        )}
         <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
           This Week's Total
         </Text>
@@ -37,11 +42,14 @@ export function WeekSummary({ totalSpend, percentChange }: WeekSummaryProps) {
       >
         {percentChange > 0 ? '+' : ''}{percentChange.toFixed(0)}% vs last week
       </Text>
-      <Text style={[styles.summaryMessage, { color: colors.textSecondary }]}>
-        {isPositive
-          ? "You spent less this week. Nice steady pace! 🎉"
-          : "A bit higher than usual. Let's see where it went."}
-      </Text>
+      <View style={styles.summaryMessageRow}>
+        {isPositive && <PartyPopper size={14} color={colors.textSecondary} strokeWidth={2} style={{ marginRight: 4 }} />}
+        <Text style={[styles.summaryMessage, { color: colors.textSecondary }]}>
+          {isPositive
+            ? "You spent less this week. Nice steady pace!"
+            : "A bit higher than usual. Let's see where it went."}
+        </Text>
+      </View>
     </Card>
   );
 }
@@ -53,9 +61,9 @@ const styles = StyleSheet.create({
     borderRadius: 16 
   },
   summaryHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
-  summaryIcon: { fontSize: 20 },
   summaryLabel: { fontSize: 13 },
   summaryValue: { fontSize: 36, fontWeight: '700', marginBottom: 4 },
   summaryChange: { fontSize: 14, fontWeight: '600', marginBottom: 12 },
+  summaryMessageRow: { flexDirection: 'row', alignItems: 'center' },
   summaryMessage: { fontSize: 13, textAlign: 'center' },
 });
