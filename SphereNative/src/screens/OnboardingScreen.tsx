@@ -6,7 +6,10 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { RootStackParamList } from '../navigation/AppNavigator';
-import { createLinkToken, exchangePublicToken, getAccounts, getSummary } from '../lib/plaid';
+import { createLinkToken, createLinkTokenWithRedirect, exchangePublicToken, getAccounts, getSummary } from '../lib/plaid';
+import * as WebBrowser from 'expo-web-browser';
+import * as ExpoLinking from 'expo-linking';
+import { create as createPlaidLink, open as openPlaidLink } from 'react-native-plaid-link-sdk';
 import {
   OnboardingHeader,
   WelcomeSlide,
@@ -35,6 +38,8 @@ export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const flatListRef = useRef<FlatList>(null);
 
+  const [linkToken, setLinkToken] = useState<string | null>(null);
+  // const [showPlaid, setShowPlaid] = useState(false); // not needed with openLink
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedGoals, setSelectedGoals] = useState<string[]>([]);
@@ -109,20 +114,23 @@ export default function OnboardingScreen() {
     try {
       // Step 1: Get a link token from the backend
       console.log('=== PLAID LINK: Getting link token ===');
-      const { link_token } = await createLinkToken();
-      console.log('Link token received:', link_token ? 'Yes' : 'No');
+      let link_token: string | undefined = undefined;
+
+      // If native (mobile), request a link token that includes a redirect_uri
+      if (Platform.OS !== 'web') {
+        const redirectUri = ExpoLinking.createURL('plaid-link-callback');
+        const res = await createLinkTokenWithRedirect(redirectUri);
+        link_token = res?.link_token;
+        console.log('Link token (with redirect) received:', link_token ? 'Yes' : 'No');
+      } else {
+        const res = await createLinkToken();
+        link_token = res?.link_token;
+        console.log('Link token received:', link_token ? 'Yes' : 'No');
+      }
 
       // Step 2: Open Plaid Link
-      // For React Native, we need to use the Plaid Link SDK
-      // Since react-native-plaid-link-sdk requires native setup,
-      // we'll use a WebView-based approach for now or simulate success
-      
-      // Note: In production, you would use:
-      // import { PlaidLink } from 'react-native-plaid-link-sdk';
-      // For now, we'll open Plaid Link in a browser (development approach)
-      
       if (Platform.OS === 'web') {
-        // For web, we can use the Plaid Link directly
+        // For web, we can use the Plaid Link directly (or simulate in dev)
         Alert.alert(
           'Connect Bank',
           'In production, this would open Plaid Link. For development, simulating a successful connection.',
@@ -130,7 +138,6 @@ export default function OnboardingScreen() {
             {
               text: 'Simulate Connection',
               onPress: async () => {
-                // Simulate getting accounts
                 await simulatePlaidConnection();
               },
             },
@@ -138,45 +145,84 @@ export default function OnboardingScreen() {
           ]
         );
       } else {
-        // For native, open Plaid Link in a browser
-        // This is a simplified approach - in production, use react-native-plaid-link-sdk
-        const plaidLinkUrl = `https://cdn.plaid.com/link/v2/stable/link.html?token=${link_token}`;
-        
-        Alert.alert(
-          'Connect Bank',
-          'This will open Plaid Link to connect your bank account.',
-          [
-            {
-              text: 'Open Plaid',
-              onPress: async () => {
-                try {
-                  await Linking.openURL(plaidLinkUrl);
-                  // After user returns, try to fetch accounts
-                  setTimeout(async () => {
-                    await fetchConnectedAccounts();
-                  }, 2000);
-                } catch (err) {
-                  console.error('Error opening Plaid Link:', err);
-                  // Fallback to simulation
-                  await simulatePlaidConnection();
-                }
-              },
+        // Native: use react-native-plaid-link-sdk create/open for a full in-app native experience
+        try {
+          // Initialize a Plaid Link session with the token
+          createPlaidLink({ token: link_token ?? '' });
+
+          // Open Plaid Link and handle success/exit
+          openPlaidLink({
+            onSuccess: async (result: any) => {
+              // result should include publicToken or public_token
+              const publicToken = result?.publicToken ?? result?.public_token ?? null;
+              if (publicToken) {
+                await handlePlaidSuccess(publicToken);
+              } else {
+                // Fallback: try fetching accounts from backend
+                await fetchConnectedAccounts();
+              }
             },
-            {
-              text: 'Simulate (Dev)',
-              onPress: async () => {
-                await simulatePlaidConnection();
-              },
+            onExit: (result: any) => {
+              const err = result?.error ?? null;
+              handlePlaidExit(err);
             },
-            { text: 'Cancel', style: 'cancel' },
-          ]
-        );
+          });
+        } catch (err) {
+          console.error('Error opening Plaid Link via native SDK:', err);
+          // Fallback: open hosted link in in-app browser
+          try {
+            const redirectUri = ExpoLinking.createURL('plaid-link-callback');
+            const plaidLinkUrl = `https://cdn.plaid.com/link/v2/stable/link.html?isWebview=true&token=${link_token}&redirect_uri=${encodeURIComponent(redirectUri)}`;
+            const result = await WebBrowser.openAuthSessionAsync(plaidLinkUrl, redirectUri);
+            if (result.type === 'success' && result.url) {
+              const parsed = ExpoLinking.parse(result.url);
+              const params: any = parsed.queryParams || {};
+              const publicToken = params.public_token ?? params.publicToken ?? null;
+              if (publicToken) {
+                await handlePlaidSuccess(publicToken);
+              } else {
+                await fetchConnectedAccounts();
+              }
+            }
+            try { WebBrowser.maybeCompleteAuthSession(); } catch (e) {}
+          } catch (err2) {
+            console.error('Fallback WebBrowser error', err2);
+            Alert.alert('Open Failed', 'Could not open Plaid Link. Try again later.');
+          }
+        }
       }
     } catch (error) {
       console.error('=== PLAID LINK ERROR ===', error);
       Alert.alert('Error', 'Failed to initialize bank connection. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handler called when Plaid Link completes successfully
+  const handlePlaidSuccess = async (publicToken: string) => {
+    setIsLoading(true);
+    try {
+      const res = await exchangePublicToken(publicToken);
+      if (res?.success) {
+        await fetchConnectedAccounts();
+        Alert.alert('Banks Connected!', `Successfully linked accounts`);
+        nextSlide();
+      } else {
+        Alert.alert('Connection Failed', 'Unable to exchange token.');
+      }
+    } catch (err) {
+      console.error('Plaid exchange error', err);
+      Alert.alert('Error', 'Failed to complete bank connection.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePlaidExit = (error: any) => {
+    if (error) {
+      console.error('Plaid Link exit', error);
+      Alert.alert('Plaid Link Closed', error.display_message || error.error_message || 'Link closed');
     }
   };
 
@@ -384,6 +430,8 @@ export default function OnboardingScreen() {
           index,
         })}
       />
+
+      {/* Native Plaid Link handled via openLink from SDK (no modal component needed) */}
     </View>
   );
 }

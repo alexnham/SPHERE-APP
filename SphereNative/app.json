@@ -15,7 +15,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sphere.finance"
+      "bundleIdentifier": "com.sphere.finance",
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["spherefinance"]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +31,19 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.sphere.finance"
+      "package": "com.sphere.finance",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "spherefinance",
+              "host": "plaid-link-callback"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

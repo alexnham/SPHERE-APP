@@ -36,6 +36,18 @@ export const createLinkToken = async (): Promise<PlaidLinkToken> => {
   return apiCall('/api/create_link_token', { method: 'POST' });
 };
 
+/**
+ * createLinkTokenWithRedirect
+ * Call your backend's /api/create_link_token with a redirect_uri so Plaid Link can OAuth back to the app.
+ * Backend should forwards redirect_uri to Plaid's /link/token/create request when provided.
+ */
+export const createLinkTokenWithRedirect = async (redirectUri: string): Promise<PlaidLinkToken> => {
+  return apiCall('/api/create_link_token', {
+    method: 'POST',
+    body: JSON.stringify({ redirect_uri: redirectUri }),
+  });
+};
+
 // Exchange public token for access token (after user completes Plaid Link)
 export const exchangePublicToken = async (publicToken: string): Promise<{ success: boolean }> => {
   return apiCall('/api/exchange_public_token', {
