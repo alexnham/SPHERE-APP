@@ -70,7 +70,7 @@ open ios/SphereNative.xcworkspace
 
 #### Option 2: Using Command Line
 ```bash
-npx expo run:ios
+npm run ios
 ```
 
 ### iOS on Physical Device
