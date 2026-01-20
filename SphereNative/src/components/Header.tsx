@@ -2,8 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { format } from 'date-fns';
 import { useTheme } from '../contexts/ThemeContext';
+import { useViewMode } from '../contexts/ViewModeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Bell, Settings } from 'lucide-react-native';
+import { Bell, Settings, LayoutGrid, LayoutList } from 'lucide-react-native';
 
 interface HeaderProps {
   onSettingsPress?: () => void;
@@ -19,9 +20,14 @@ const getGreeting = () => {
 
 export const Header = ({ onSettingsPress, onNotificationsPress }: HeaderProps) => {
   const { colors, isDark, toggleTheme } = useTheme();
+  const { isSimpleView, setViewMode } = useViewMode();
   const insets = useSafeAreaInsets();
   const now = new Date();
   const displayName = 'there'; // Can be replaced with actual user name
+
+  const toggleViewMode = () => {
+    setViewMode(isSimpleView ? 'detailed' : 'simple');
+  };
 
   return (
     <View
@@ -46,6 +52,22 @@ export const Header = ({ onSettingsPress, onNotificationsPress }: HeaderProps) =
 
       {/* Right - Action Buttons */}
       <View style={styles.rightSection}>
+        {/* View Mode Toggle */}
+        <TouchableOpacity
+          style={[
+            styles.iconButton,
+            {
+              backgroundColor: isSimpleView ? `${colors.primary}20` : colors.surface,
+            },
+          ]}
+          onPress={toggleViewMode}
+        >
+          {isSimpleView ? (
+            <LayoutList size={20} color={colors.primary} strokeWidth={2} />
+          ) : (
+            <LayoutGrid size={20} color={colors.text} strokeWidth={2} />
+          )}
+        </TouchableOpacity>
 
         {/* Notifications */}
         <TouchableOpacity

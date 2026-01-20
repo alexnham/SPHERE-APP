@@ -4,6 +4,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { differenceInDays } from 'date-fns';
 import { useTheme } from '../contexts/ThemeContext';
+import { useViewMode } from '../contexts/ViewModeContext';
+import { Card } from '../components/Card';
+import { formatCurrency } from '../lib/utils';
 import { transactions, dailySpendData } from '../lib/mockData';
 import {
   WeeklyReflectionHeader,
@@ -12,10 +15,11 @@ import {
   RepeatedPatterns,
   QuickReflection,
 } from '../components/weeklyReflection';
-import { CheckCircle } from 'lucide-react-native';
+import { CheckCircle, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react-native';
 
 export default function WeeklyReflectionScreen() {
   const { colors } = useTheme();
+  const { isSimpleView } = useViewMode();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const now = new Date();
@@ -72,6 +76,95 @@ export default function WeeklyReflectionScreen() {
     // Handle feedback logic here
   };
 
+  const isSpendingDown = percentChange < 0;
+  const topCategory = sortedCategories[0];
+
+  // Simple View
+  if (isSimpleView) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View
+          style={[
+            styles.header,
+            {
+              paddingTop: insets.top + 8,
+              backgroundColor: colors.background,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
+          <WeeklyReflectionHeader onBack={() => navigation.goBack()} />
+        </View>
+
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.simpleContentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Week Summary - Simplified */}
+          <Card>
+            <View style={styles.simpleWeekSummary}>
+              <View style={styles.simpleWeekHeader}>
+                <BarChart3 size={20} color={colors.primary} strokeWidth={2} />
+                <Text style={[styles.simpleWeekTitle, { color: colors.text }]}>
+                  This Week
+                </Text>
+              </View>
+              <Text style={[styles.simpleWeekAmount, { color: colors.text }]}>
+                {formatCurrency(thisWeekSpend)}
+              </Text>
+              <View style={styles.simpleWeekTrend}>
+                {isSpendingDown ? (
+                  <TrendingDown size={18} color="#10b981" strokeWidth={2} />
+                ) : (
+                  <TrendingUp size={18} color="#f59e0b" strokeWidth={2} />
+                )}
+                <Text style={[
+                  styles.simpleWeekTrendText,
+                  { color: isSpendingDown ? '#10b981' : '#f59e0b' }
+                ]}>
+                  {Math.abs(percentChange).toFixed(0)}% vs last week
+                </Text>
+              </View>
+            </View>
+          </Card>
+
+          {/* Top Category */}
+          {topCategory && (
+            <Card>
+              <View style={styles.simpleCategoryCard}>
+                <Text style={[styles.simpleCategoryLabel, { color: colors.textSecondary }]}>
+                  Top Category
+                </Text>
+                <Text style={[styles.simpleCategoryName, { color: colors.text }]}>
+                  {topCategory[0]}
+                </Text>
+                <Text style={[styles.simpleCategoryAmount, { color: colors.primary }]}>
+                  {formatCurrency(topCategory[1])}
+                </Text>
+              </View>
+            </Card>
+          )}
+
+          {/* Category Breakdown - Simplified */}
+          <CategoryBreakdown categories={sortedCategories} totalSpend={thisWeekSpend} />
+
+          <TouchableOpacity
+            style={[styles.completeButton, { backgroundColor: colors.primary }]}
+          >
+            <View style={styles.completeButtonContent}>
+              <CheckCircle size={18} color="#fff" strokeWidth={2} />
+              <Text style={styles.completeButtonText}>Mark Week as Reviewed</Text>
+            </View>
+          </TouchableOpacity>
+
+          <View style={styles.bottomPadding} />
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // Detailed View
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View
@@ -123,6 +216,52 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1 },
   scrollView: { flex: 1 },
   contentContainer: { padding: 16 },
+  simpleContentContainer: { padding: 16, gap: 16 },
+  simpleWeekSummary: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  simpleWeekHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  simpleWeekTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  simpleWeekAmount: {
+    fontSize: 32,
+    fontWeight: '700',
+    marginBottom: 12,
+  },
+  simpleWeekTrend: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  simpleWeekTrendText: {
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  simpleCategoryCard: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  simpleCategoryLabel: {
+    fontSize: 13,
+    marginBottom: 8,
+  },
+  simpleCategoryName: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  simpleCategoryAmount: {
+    fontSize: 24,
+    fontWeight: '700',
+  },
   completeButton: { padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 8 },
   completeButtonContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   completeButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },

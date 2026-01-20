@@ -3,6 +3,7 @@ import { StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { ThemeProvider, useTheme } from './src/contexts/ThemeContext';
 import { AuthProvider } from './src/contexts/AuthContext';
+import { ViewModeProvider } from './src/contexts/ViewModeContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
 const AppContent = () => {
@@ -42,7 +43,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <AppContent />
+        <ViewModeProvider>
+          <AppContent />
+        </ViewModeProvider>
       </ThemeProvider>
     </AuthProvider>
   );
