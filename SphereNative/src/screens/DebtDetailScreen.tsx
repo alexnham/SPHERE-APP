@@ -1,10 +1,9 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { differenceInDays } from 'date-fns';
 import { useTheme } from '../contexts/ThemeContext';
-import { liabilities, calculateSafeToSpend } from '../lib/mockData';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import {
   DebtDetailHeader,
@@ -14,15 +13,47 @@ import {
   CostOfWaiting,
   PaymentOptions,
 } from '../components/debtDetail';
+import { useLiabilities } from '../hooks/useLiabilities';
+import { calculateSafeToSpend } from '../lib/database';
+import { Liability } from '../lib/mockData';
 
 export default function DebtDetailScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'DebtDetail'>>();
   const insets = useSafeAreaInsets();
+  const { liabilities, loading: liabilitiesLoading } = useLiabilities();
+  const [safeToSpendData, setSafeToSpendData] = useState<{ safeToSpend: number } | null>(null);
+  const [loadingSafeToSpend, setLoadingSafeToSpend] = useState(true);
 
-  const { safeToSpend } = calculateSafeToSpend();
+  useEffect(() => {
+    const fetchSafeToSpend = async () => {
+      try {
+        setLoadingSafeToSpend(true);
+        const data = await calculateSafeToSpend();
+        setSafeToSpendData(data);
+      } catch (error) {
+        console.error('Error fetching safe to spend:', error);
+      } finally {
+        setLoadingSafeToSpend(false);
+      }
+    };
+    fetchSafeToSpend();
+  }, []);
+
+  const safeToSpend = safeToSpendData?.safeToSpend || 0;
   const liability = liabilities.find((l) => l.id === route.params.id);
+
+  const isLoading = liabilitiesLoading || loadingSafeToSpend;
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary, marginTop: 16 }]}>Loading...</Text>
+      </View>
+    );
+  }
 
   if (!liability) {
     return (
@@ -128,4 +159,7 @@ const styles = StyleSheet.create({
   goBackButtonText: { color: '#fff', fontWeight: '600' },
   backText: { fontSize: 16, fontWeight: '500' },
   bottomPadding: { height: 40 },
+  loadingText: {
+    fontSize: 14,
+  },
 });

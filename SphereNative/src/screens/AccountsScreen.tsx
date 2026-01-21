@@ -1,22 +1,23 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useViewMode } from '../contexts/ViewModeContext';
-import { accounts, liabilities } from '../lib/mockData';
 import { Card } from '../components/Card';
 import { formatCurrency } from '../lib/utils';
 import {
-  NetWorthCard,
   AccountBreakdownCard,
   AccountsOverview,
   SavingsVaults,
 } from '../components/accounts';
+import {
+  SimpleHeader,
+  SimpleNetWorthCard,
+  SimpleAccountSummary,
+} from '../components/simple';
 import { Building2, PiggyBank, Rocket, Wallet, TrendingUp } from 'lucide-react-native';
-
-// Calculate totals
-const totalAssets = accounts.reduce((sum, a) => sum + a.currentBalance, 0);
-const totalLiabilities = liabilities.reduce((sum, l) => sum + l.currentBalance, 0);
-const netWorth = totalAssets - totalLiabilities;
+import { useAccounts } from '../hooks/useAccounts';
+import { useLiabilities } from '../hooks/useLiabilities';
+import { calculateNetWorth } from '../lib/database';
 
 // Account type colors
 const accountTypeColors: Record<string, string> = {
@@ -32,15 +33,61 @@ const accountTypeIcons: Record<string, string> = {
   investment: 'rocket',
 };
 
-// Group accounts by type
-const accountsByType = accounts.reduce((acc, account) => {
-  acc[account.type] = (acc[account.type] || 0) + account.currentBalance;
-  return acc;
-}, {} as Record<string, number>);
-
 export default function AccountsScreen() {
   const { colors } = useTheme();
   const { isSimpleView } = useViewMode();
+  const { accounts, loading: accountsLoading } = useAccounts();
+  const { liabilities, loading: liabilitiesLoading } = useLiabilities();
+  const [netWorthData, setNetWorthData] = React.useState<{ assets: number; liabilities: number; netWorth: number } | null>(null);
+  const [loadingNetWorth, setLoadingNetWorth] = React.useState(true);
+
+  // Fetch net worth data
+  React.useEffect(() => {
+    const fetchNetWorth = async () => {
+      try {
+        setLoadingNetWorth(true);
+        const data = await calculateNetWorth();
+        setNetWorthData(data);
+      } catch (error) {
+        console.error('Error fetching net worth:', error);
+      } finally {
+        setLoadingNetWorth(false);
+      }
+    };
+    fetchNetWorth();
+  }, [accounts, liabilities]);
+
+  // Calculate totals
+  const totalAssets = useMemo(() => {
+    return accounts.reduce((sum, a) => sum + a.currentBalance, 0);
+  }, [accounts]);
+
+  const totalLiabilities = useMemo(() => {
+    return liabilities.reduce((sum, l) => sum + l.currentBalance, 0);
+  }, [liabilities]);
+
+  const netWorth = netWorthData?.netWorth ?? (totalAssets - totalLiabilities);
+
+  // Group accounts by type - only asset accounts (checking, savings, investment)
+  const accountsByType = useMemo(() => {
+    return accounts
+      .filter(a => a.type === 'checking' || a.type === 'savings' || a.type === 'investment')
+      .reduce((acc, account) => {
+        acc[account.type] = (acc[account.type] || 0) + account.currentBalance;
+        return acc;
+      }, {} as Record<string, number>);
+  }, [accounts]);
+
+  const isLoading = accountsLoading || liabilitiesLoading || loadingNetWorth;
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary, marginTop: 16 }]}>Loading...</Text>
+      </View>
+    );
+  }
 
   // Simple View
   if (isSimpleView) {
@@ -55,77 +102,27 @@ export default function AccountsScreen() {
         contentContainerStyle={styles.simpleContentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.simpleHeader}>
-          <Text style={[styles.simpleTitle, { color: colors.text }]}>Accounts & Banks</Text>
-        </View>
+        <SimpleHeader title="Accounts & Banks" colors={colors} />
 
         {/* Net Worth Summary */}
-        <Card>
-          <View style={styles.simpleNetWorth}>
-            <Text style={[styles.simpleNetWorthLabel, { color: colors.textSecondary }]}>
-              Net Worth
-            </Text>
-            <Text style={[styles.simpleNetWorthAmount, { color: colors.text }]}>
-              {formatCurrency(netWorth)}
-            </Text>
-            <View style={styles.simpleNetWorthBreakdown}>
-              <View style={styles.simpleBreakdownItem}>
-                <TrendingUp size={16} color="#10b981" strokeWidth={2} />
-                <Text style={[styles.simpleBreakdownText, { color: colors.textSecondary }]}>
-                  Assets: {formatCurrency(totalAssets)}
-                </Text>
-              </View>
-              <View style={styles.simpleBreakdownItem}>
-                <TrendingUp size={16} color="#ef4444" strokeWidth={2} style={{ transform: [{ rotate: '180deg' }] }} />
-                <Text style={[styles.simpleBreakdownText, { color: colors.textSecondary }]}>
-                  Liabilities: {formatCurrency(totalLiabilities)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </Card>
-
-        {/* Quick Account Summary */}
-        <Card>
-          <View style={styles.simpleAccountsSummary}>
-            <View style={styles.simpleAccountType}>
-              <View style={[styles.simpleAccountIcon, { backgroundColor: `${accountTypeColors.checking}20` }]}>
-                <Wallet size={20} color={accountTypeColors.checking} strokeWidth={2} />
-              </View>
-              <View style={styles.simpleAccountInfo}>
-                <Text style={[styles.simpleAccountLabel, { color: colors.textSecondary }]}>
-                  Checking
-                </Text>
-                <Text style={[styles.simpleAccountAmount, { color: colors.text }]}>
-                  {formatCurrency(totalChecking)}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.simpleAccountType}>
-              <View style={[styles.simpleAccountIcon, { backgroundColor: `${accountTypeColors.savings}20` }]}>
-                <PiggyBank size={20} color={accountTypeColors.savings} strokeWidth={2} />
-              </View>
-              <View style={styles.simpleAccountInfo}>
-                <Text style={[styles.simpleAccountLabel, { color: colors.textSecondary }]}>
-                  Savings
-                </Text>
-                <Text style={[styles.simpleAccountAmount, { color: colors.text }]}>
-                  {formatCurrency(totalSavings)}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </Card>
-
-        {/* Accounts Overview - Simplified */}
-        <AccountsOverview
-          accounts={accounts}
+        <SimpleNetWorthCard
           netWorth={netWorth}
           totalAssets={totalAssets}
           totalLiabilities={totalLiabilities}
-          accountTypeIcons={accountTypeIcons}
           colors={colors}
         />
+
+        {/* Quick Account Summary */}
+        <SimpleAccountSummary
+          accounts={[
+            { type: 'checking', amount: totalChecking, color: accountTypeColors.checking },
+            { type: 'savings', amount: totalSavings, color: accountTypeColors.savings },
+          ]}
+          colors={colors}
+        />
+
+      {/* Savings Vaults */}
+      <SavingsVaults colors={colors} />
 
         <View style={styles.bottomPadding} />
       </ScrollView>
@@ -149,22 +146,8 @@ export default function AccountsScreen() {
         </Text>
       </View>
 
-      {/* Net Worth Summary */}
-      <NetWorthCard
-        totalAssets={totalAssets}
-        totalLiabilities={totalLiabilities}
-        colors={colors}
-      />
 
-      {/* Account Breakdown */}
-      <AccountBreakdownCard
-        accountsByType={accountsByType}
-        totalAssets={totalAssets}
-        accountTypeColors={accountTypeColors}
-        colors={colors}
-      />
-
-      {/* Accounts Overview */}
+      {/* Accounts Overview with Net Worth */}
       <AccountsOverview
         accounts={accounts}
         netWorth={netWorth}
@@ -174,8 +157,16 @@ export default function AccountsScreen() {
         colors={colors}
       />
 
-      {/* Savings Vaults */}
-      <SavingsVaults colors={colors} />
+            {/* Account Breakdown */}
+            <AccountBreakdownCard
+        accountsByType={accountsByType}
+        totalAssets={totalAssets}
+        accountTypeColors={accountTypeColors}
+        colors={colors}
+      />
+
+
+
 
       <View style={styles.bottomPadding} />
     </ScrollView>
@@ -204,67 +195,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 4,
   },
-  simpleHeader: {
-    marginBottom: 20,
-    marginTop: 8,
-  },
-  simpleTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
-  simpleNetWorth: {
-    alignItems: 'center',
-    padding: 20,
-  },
-  simpleNetWorthLabel: {
-    fontSize: 13,
-    marginBottom: 8,
-  },
-  simpleNetWorthAmount: {
-    fontSize: 36,
-    fontWeight: '700',
-    marginBottom: 16,
-  },
-  simpleNetWorthBreakdown: {
-    width: '100%',
-    gap: 12,
-  },
-  simpleBreakdownItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  simpleBreakdownText: {
-    fontSize: 13,
-  },
-  simpleAccountsSummary: {
-    gap: 16,
-    padding: 16,
-  },
-  simpleAccountType: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  simpleAccountIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  simpleAccountInfo: {
-    flex: 1,
-  },
-  simpleAccountLabel: {
-    fontSize: 13,
-    marginBottom: 4,
-  },
-  simpleAccountAmount: {
-    fontSize: 20,
-    fontWeight: '600',
-  },
   bottomPadding: {
     height: 40,
+  },
+  loadingText: {
+    fontSize: 14,
   },
 });

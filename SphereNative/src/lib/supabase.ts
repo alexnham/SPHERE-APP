@@ -17,7 +17,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 // API URL for backend calls (Plaid token exchange, etc.)
 // TODO: Replace with your active ngrok URL or deployed backend URL
-export const API_URL = 'https://c6d6fb0949f4.ngrok-free.app'; // Change to your backend URL
+export const API_URL = 'https://d1959890d7c7.ngrok-free.app'; // Change to your backend URL
 
 // Helper to get auth token
 export const getAuthToken = async (): Promise<string | null> => {
@@ -33,18 +33,49 @@ export const apiCall = async (endpoint: string, options: RequestInit = {}) => {
     throw new Error('Not authenticated');
   }
 
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      ...options.headers,
-    },
-  });
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers,
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`API call failed: ${response.statusText}`);
+    if (!response.ok) {
+      // Try to parse error response body
+      let errorMessage = `API call failed: ${response.status} ${response.statusText || 'Unknown error'}`;
+      
+      try {
+        const errorData = await response.json();
+        if (errorData.error) {
+          errorMessage = `API call failed: ${errorData.error}`;
+        } else if (errorData.message) {
+          errorMessage = `API call failed: ${errorData.message}`;
+        }
+      } catch (e) {
+        // If JSON parsing fails, try to get text
+        try {
+          const errorText = await response.text();
+          if (errorText) {
+            errorMessage = `API call failed: ${errorText.substring(0, 200)}`;
+          }
+        } catch (textError) {
+          // Use default error message
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  } catch (error) {
+    // Re-throw if it's already an Error with a message
+    if (error instanceof Error) {
+      throw error;
+    }
+    // Handle network errors or other fetch failures
+    throw new Error(`Network error: ${error}`);
   }
-
-  return response.json();
 };

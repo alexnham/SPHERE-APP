@@ -10,13 +10,14 @@ import {
 import { X } from 'lucide-react-native';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
-import { transactions } from '../../lib/mockData';
+import { Transaction } from '../../lib/mockData';
 
 interface SpendingCalendarProps {
   colors: any;
+  transactions?: Transaction[];
 }
 
-export const SpendingCalendar = ({ colors }: SpendingCalendarProps) => {
+export const SpendingCalendar = ({ colors, transactions = [] }: SpendingCalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showModal, setShowModal] = useState(false);
@@ -77,7 +78,7 @@ export const SpendingCalendar = ({ colors }: SpendingCalendarProps) => {
         txnDate.getDate() === day &&
         txnDate.getMonth() === month &&
         txnDate.getFullYear() === year &&
-        t.amount > 0
+        t.amount < 0 // Spending is negative
       );
     });
   };
@@ -86,14 +87,14 @@ export const SpendingCalendar = ({ colors }: SpendingCalendarProps) => {
   const dailySpendTotals = useMemo(() => {
     const totals: Record<string, number> = {};
     transactions.forEach((t) => {
-      if (t.amount > 0) {
+      if (t.amount < 0) { // Spending is negative
         const txnDate = new Date(t.date);
         const key = `${txnDate.getFullYear()}-${txnDate.getMonth()}-${txnDate.getDate()}`;
-        totals[key] = (totals[key] || 0) + t.amount;
+        totals[key] = (totals[key] || 0) + Math.abs(t.amount);
       }
     });
     return totals;
-  }, []);
+  }, [transactions]);
 
   // Get spending for a day from actual transactions
   const getSpendForDay = (day: number) => {
@@ -131,7 +132,7 @@ export const SpendingCalendar = ({ colors }: SpendingCalendarProps) => {
     : [];
 
   // Calculate total for selected day
-  const selectedDayTotal = selectedDayTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const selectedDayTotal = selectedDayTransactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
 
   return (
     <Card>
@@ -286,7 +287,7 @@ export const SpendingCalendar = ({ colors }: SpendingCalendarProps) => {
                       </Text>
                     </View>
                     <Text style={[styles.txnAmount, { color: colors.text }]}>
-                      {formatCurrency(txn.amount)}
+                      {formatCurrency(Math.abs(txn.amount))}
                     </Text>
                   </View>
                 ))}

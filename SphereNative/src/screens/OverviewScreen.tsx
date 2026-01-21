@@ -1,9 +1,8 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { useViewMode } from '../contexts/ViewModeContext';
 import { Card } from '../components/Card';
-import { accounts, transactions, dailySpendData } from '../lib/mockData';
 import { formatCurrency } from '../lib/utils';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,65 +13,75 @@ import {
   UpcomingBillsCard,
   WeeklyInsightCard,
 } from '../components/overview';
-import { calculateSafeToSpend } from '../lib/mockData';
-import { TrendingDown, TrendingUp, ChevronRight, Calendar, BarChart3, CreditCard } from 'lucide-react-native';
-import Svg, { Circle, Defs, LinearGradient, Stop, Polyline } from 'react-native-svg';
+import {
+  SimpleHeader,
+  ProgressRing,
+} from '../components/simple';
+import { useAccounts } from '../hooks/useAccounts';
+import { useSummary } from '../hooks/useSummary';
+import { useBills } from '../hooks/useBills';
+import { useTransactions } from '../hooks/useTransactions';
+import { calculateSafeToSpend, generateDailySpendData } from '../lib/database';
+import { ChevronRight, Calendar, BarChart3, CreditCard, TrendingDown, TrendingUp } from 'lucide-react-native';
 import { differenceInDays } from 'date-fns';
-
-// Simple mini sparkline component
-const MiniSparkline = ({ data, color }: { data: number[]; color: string }) => {
-  if (data.length < 2) return null;
-  
-  const max = Math.max(...data);
-  const min = Math.min(...data);
-  const range = max - min || 1;
-  const height = 40;
-  const width = 120;
-  
-  const points = data.map((val, i) => {
-    const x = (i / (data.length - 1)) * width;
-    const y = height - ((val - min) / range) * height;
-    return `${x},${y}`;
-  }).join(' ');
-
-  return (
-    <Svg width={width} height={height} style={{ overflow: 'visible' }}>
-      <Defs>
-        <LinearGradient id="sparklineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <Stop offset="0%" stopColor={color} stopOpacity="0.6" />
-          <Stop offset="100%" stopColor={color} stopOpacity="1" />
-        </LinearGradient>
-      </Defs>
-      <Polyline
-        fill="none"
-        stroke="url(#sparklineGrad)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        points={points}
-      />
-      <Circle
-        cx={(data.length - 1) / (data.length - 1) * width}
-        cy={height - ((data[data.length - 1] - min) / range) * height}
-        r="4"
-        fill={color}
-      />
-    </Svg>
-  );
-};
+import { MiniSparkline } from '../components/overview/MiniSparkline';
 
 export default function OverviewScreen() {
   const { colors } = useTheme();
   const { isSimpleView } = useViewMode();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { accounts, loading: accountsLoading } = useAccounts();
+  const { summary, loading: summaryLoading } = useSummary();
+  const { bills, loading: billsLoading } = useBills();
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const { transactions, loading: transactionsLoading } = useTransactions({
+    start_date: startOfMonth.toISOString().split('T')[0],
+    limit: 1000,
+  });
+  const [safeToSpendData, setSafeToSpendData] = React.useState<{ safeToSpend: number; breakdown: any } | null>(null);
+  const [dailySpendData, setDailySpendData] = React.useState<Array<{ date: Date; amount: number; categories: Record<string, number> }>>([]);
+  const [loadingSafeToSpend, setLoadingSafeToSpend] = React.useState(true);
 
-  // Calculate total available
-  const totalAvailable = accounts
-    .filter(a => a.type === 'checking' || a.type === 'savings')
-    .reduce((sum, a) => sum + a.availableBalance, 0);
+  // Fetch safe to spend and daily spend data
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoadingSafeToSpend(true);
+        const [safeToSpend, dailySpend] = await Promise.all([
+          calculateSafeToSpend(),
+          generateDailySpendData(),
+        ]);
+        setSafeToSpendData(safeToSpend);
+        setDailySpendData(dailySpend);
+      } catch (error) {
+        console.error('Error fetching overview data:', error);
+        // Set default values on error to prevent UI from breaking
+        setSafeToSpendData({
+          safeToSpend: 0,
+          breakdown: {
+            liquidAvailable: 0,
+            pendingOutflows: 0,
+            upcoming7dEssentials: 0,
+            userBuffer: 200,
+          },
+        });
+        setDailySpendData([]);
+      } finally {
+        setLoadingSafeToSpend(false);
+      }
+    };
+    fetchData();
+  }, [accounts]);
 
-  // Calculate safe to spend
-  const { safeToSpend, breakdown } = calculateSafeToSpend();
+  // Calculate total available - only checking accounts (includes cash management)
+  const totalAvailable = useMemo(() => {
+    console.log(accounts.filter(a => a.type === 'checking').map(a => a.availableBalance));
+    return accounts
+      .filter(a => a.type === 'checking') // Only checking accounts (cash management is a type of checking)
+      .reduce((sum, a) => sum + a.availableBalance, 0);
+  }, [accounts]);
+  console.log(totalAvailable);
 
   // Calculate weekly spending trend for simple view
   const weeklyData = useMemo(() => {
@@ -92,16 +101,28 @@ export default function OverviewScreen() {
     const weeklyChange = prevWeekTotal > 0 ? ((thisWeekTotal - prevWeekTotal) / prevWeekTotal) * 100 : 0;
     
     return { last7Days, weeklyChange };
-  }, []);
+  }, [dailySpendData]);
 
   const isSpendingDown = weeklyData.weeklyChange < 0;
 
+  const isLoading = accountsLoading || summaryLoading || loadingSafeToSpend || billsLoading || transactionsLoading;
+  const safeToSpend = safeToSpendData?.safeToSpend || 0;
+  const breakdown = safeToSpendData?.breakdown || { liquidAvailable: 0, pendingOutflows: 0, upcoming7dEssentials: 0, userBuffer: 200 };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary, marginTop: 16 }]}>Loading...</Text>
+      </View>
+    );
+  }
+
   // Simple View - Clean, minimal UI with visual elements
   if (isSimpleView) {
-    const ringProgress = 0.25; // 25% of ring filled
-    const ringRadius = 90;
-    const circumference = 2 * Math.PI * ringRadius;
-    const strokeDashoffset = circumference * (1 - ringProgress);
+    const maxTotal = 10000; // Reference point for progress calculation
+    const ringProgress = Math.min(1, totalAvailable / maxTotal);
 
     return (
       <ScrollView
@@ -110,44 +131,12 @@ export default function OverviewScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Simple Total Available with visual ring */}
-        <View style={styles.simpleHeroContainer}>
-          <View style={styles.ringContainer}>
-            <Svg width={200} height={200} viewBox="0 0 200 200">
-              <Defs>
-                <LinearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <Stop offset="0%" stopColor={colors.primary} stopOpacity="0.2" />
-                  <Stop offset="100%" stopColor={colors.primary} stopOpacity="0.6" />
-                </LinearGradient>
-              </Defs>
-              <Circle
-                cx="100"
-                cy="100"
-                r={ringRadius}
-                fill="none"
-                stroke={colors.border}
-                strokeWidth="8"
-              />
-              <Circle
-                cx="100"
-                cy="100"
-                r={ringRadius}
-                fill="none"
-                stroke="url(#ringGradient)"
-                strokeWidth="8"
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={strokeDashoffset}
-                transform="rotate(-90 100 100)"
-              />
-            </Svg>
-            <View style={styles.ringContent}>
-              <Text style={[styles.ringLabel, { color: colors.textSecondary }]}>Available</Text>
-              <Text style={[styles.ringAmount, { color: colors.text }]}>
-                {formatCurrency(totalAvailable)}
-              </Text>
-            </View>
-          </View>
-        </View>
+        <ProgressRing
+          progress={ringProgress}
+          label="Available"
+          amount={formatCurrency(totalAvailable)}
+          colors={colors}
+        />
 
         {/* Safe to Spend with mini chart */}
         <Card>
@@ -235,18 +224,18 @@ export default function OverviewScreen() {
           <Text style={[styles.heroAmount, { color: colors.text }]}>
             {formatCurrency(totalAvailable)}
           </Text>
-          <SpendingTrendLine colors={colors} />
+          <SpendingTrendLine colors={colors} transactions={transactions} />
         </View>
       </Card>
 
       {/* Safe to Spend */}
-      <SafeToSpendCard colors={colors} />
+      <SafeToSpendCard colors={colors} safeToSpend={safeToSpend} breakdown={breakdown} />
 
       {/* Upcoming Bills */}
-      <UpcomingBillsCard colors={colors} />
+      <UpcomingBillsCard colors={colors} bills={bills} />
 
       {/* Weekly Insight */}
-      <WeeklyInsightCard colors={colors} />
+      <WeeklyInsightCard colors={colors} dailySpendData={dailySpendData} />
 
       <View style={styles.bottomPadding} />
     </ScrollView>
@@ -282,32 +271,6 @@ const styles = StyleSheet.create({
     fontSize: 42,
     fontWeight: '700',
     marginBottom: 16,
-  },
-  // Simple view styles
-  simpleHeroContainer: {
-    alignItems: 'center',
-    marginBottom: 24,
-    marginTop: 8,
-  },
-  ringContainer: {
-    width: 200,
-    height: 200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  ringContent: {
-    position: 'absolute',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringLabel: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  ringAmount: {
-    fontSize: 32,
-    fontWeight: '700',
   },
   simpleSafeToSpend: {
     flexDirection: 'row',
@@ -369,5 +332,8 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 40,
+  },
+  loadingText: {
+    fontSize: 14,
   },
 });

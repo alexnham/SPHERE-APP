@@ -3,7 +3,6 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Card } from '../Card';
 import { InfoTooltip } from '../shared';
 import { formatCurrency } from '../../lib/utils';
-import { calculateSafeToSpend } from '../../lib/mockData';
 import { 
   Shield, 
   Wallet, 
@@ -13,7 +12,25 @@ import {
 
 interface SafeToSpendCardProps {
   colors: any;
+  safeToSpend?: number;
+  breakdown?: {
+    liquidAvailable: number;
+    pendingOutflows: number;
+    upcoming7dEssentials: number;
+    userBuffer: number;
+  };
+  weeklyData?: {
+    last7Days: number[];
+    weeklyChange: number;
+  };
 }
+
+const defaultBreakdown = {
+  liquidAvailable: 0,
+  pendingOutflows: 0,
+  upcoming7dEssentials: 0,
+  userBuffer: 200,
+};
 
 // Icon map for breakdown items
 const breakdownIcons: Record<string, React.FC<{size: number, color: string, strokeWidth: number}>> = {
@@ -52,9 +69,10 @@ const BreakdownItem = ({ iconKey, label, value, colors, type }: any) => {
   );
 };
 
-export const SafeToSpendCard = ({ colors }: SafeToSpendCardProps) => {
-  const { safeToSpend, breakdown } = calculateSafeToSpend();
-  const healthPercent = Math.min(100, (safeToSpend / breakdown.liquidAvailable) * 100);
+export const SafeToSpendCard = ({ colors, safeToSpend = 0, breakdown = defaultBreakdown }: SafeToSpendCardProps) => {
+  const healthPercent = breakdown.liquidAvailable > 0 
+    ? Math.min(100, (safeToSpend / breakdown.liquidAvailable) * 100) 
+    : 0;
 
   return (
     <Card>

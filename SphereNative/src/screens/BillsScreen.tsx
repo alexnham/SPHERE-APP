@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, StyleSheet, ScrollView, Text, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { differenceInDays } from 'date-fns';
@@ -7,9 +7,12 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useViewMode } from '../contexts/ViewModeContext';
 import { Card } from '../components/Card';
 import { formatCurrency } from '../lib/utils';
-import { recurringCharges } from '../lib/mockData';
 import { BillsHeader, BillsSummary, BillsList } from '../components/bills';
+import {
+  SimpleBillsSummary,
+} from '../components/simple';
 import { Calendar, AlertCircle } from 'lucide-react-native';
+import { useBills } from '../hooks/useBills';
 
 export default function BillsScreen() {
   const { colors } = useTheme();
@@ -17,35 +20,51 @@ export default function BillsScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const [acknowledgedBills, setAcknowledgedBills] = useState<Set<string>>(new Set());
+  const { bills, loading: billsLoading } = useBills();
 
-  const sortedBills = [...recurringCharges].sort(
-    (a, b) => a.nextDate.getTime() - b.nextDate.getTime()
-  );
+  const sortedBills = useMemo(() => {
+    return [...bills].sort((a, b) => a.nextDate.getTime() - b.nextDate.getTime());
+  }, [bills]);
 
-  const totalMonthly = sortedBills
-    .filter((b) => b.cadence === 'monthly')
-    .reduce((sum, b) => sum + b.avgAmount, 0);
+  const totalMonthly = useMemo(() => {
+    return sortedBills
+      .filter((b) => b.cadence === 'monthly')
+      .reduce((sum, b) => sum + b.avgAmount, 0);
+  }, [sortedBills]);
 
-  const totalUpcoming = sortedBills
-    .filter(
-      (b) =>
-        differenceInDays(b.nextDate, new Date()) <= 7 &&
-        differenceInDays(b.nextDate, new Date()) >= 0
-    )
-    .reduce((sum, b) => sum + b.avgAmount, 0);
+  const totalUpcoming = useMemo(() => {
+    return sortedBills
+      .filter(
+        (b) =>
+          differenceInDays(b.nextDate, new Date()) <= 7 &&
+          differenceInDays(b.nextDate, new Date()) >= 0
+      )
+      .reduce((sum, b) => sum + b.avgAmount, 0);
+  }, [sortedBills]);
 
   const acknowledgeBill = (billId: string) => {
     setAcknowledgedBills((prev) => new Set([...prev, billId]));
   };
 
-  const thisWeek = sortedBills.filter((b) => {
-    const days = differenceInDays(b.nextDate, new Date());
-    return days >= 0 && days <= 7;
-  });
+  const thisWeek = useMemo(() => {
+    return sortedBills.filter((b) => {
+      const days = differenceInDays(b.nextDate, new Date());
+      return days >= 0 && days <= 7;
+    });
+  }, [sortedBills]);
 
-  const laterBills = sortedBills.filter(
-    (b) => differenceInDays(b.nextDate, new Date()) > 7
-  );
+  const laterBills = useMemo(() => {
+    return sortedBills.filter((b) => differenceInDays(b.nextDate, new Date()) > 7);
+  }, [sortedBills]);
+
+  if (billsLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary, marginTop: 16 }]}>Loading...</Text>
+      </View>
+    );
+  }
 
   // Simple View
   if (isSimpleView) {
@@ -62,7 +81,7 @@ export default function BillsScreen() {
           ]}
         >
           <BillsHeader
-            billCount={recurringCharges.length}
+            billCount={bills.length}
             onBack={() => navigation.goBack()}
           />
         </View>
@@ -73,22 +92,11 @@ export default function BillsScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Simple Summary */}
-          <Card>
-            <View style={styles.simpleSummary}>
-              <View style={styles.simpleSummaryHeader}>
-                <Calendar size={20} color={colors.primary} strokeWidth={2} />
-                <Text style={[styles.simpleSummaryTitle, { color: colors.text }]}>
-                  Upcoming Bills
-                </Text>
-              </View>
-              <Text style={[styles.simpleSummaryAmount, { color: colors.text }]}>
-                {formatCurrency(totalUpcoming)}
-              </Text>
-              <Text style={[styles.simpleSummarySubtext, { color: colors.textSecondary }]}>
-                Due in next 7 days
-              </Text>
-            </View>
-          </Card>
+          <SimpleBillsSummary
+            amount={totalUpcoming}
+            subtitle="Due in next 7 days"
+            colors={colors}
+          />
 
           {/* This Week Bills - Simplified */}
           {thisWeek.length > 0 && (
@@ -143,7 +151,7 @@ export default function BillsScreen() {
         ]}
       >
         <BillsHeader
-          billCount={recurringCharges.length}
+          billCount={bills.length}
           onBack={() => navigation.goBack()}
         />
       </View>
@@ -177,28 +185,6 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   contentContainer: { padding: 16 },
   simpleContentContainer: { padding: 16, gap: 16 },
-  simpleSummary: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  simpleSummaryHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  simpleSummaryTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  simpleSummaryAmount: {
-    fontSize: 32,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  simpleSummarySubtext: {
-    fontSize: 13,
-  },
   simpleBillsSection: {
     gap: 12,
   },
@@ -235,4 +221,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   bottomPadding: { height: 40 },
+  loadingText: {
+    fontSize: 14,
+  },
 });

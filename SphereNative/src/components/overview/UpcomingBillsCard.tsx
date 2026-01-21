@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card } from '../Card';
 import { formatCurrency, getDaysUntil } from '../../lib/utils';
-import { recurringCharges } from '../../lib/mockData';
+import { RecurringCharge } from '../../lib/mockData';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/AppNavigator';
@@ -20,6 +20,7 @@ import {
 
 interface UpcomingBillsCardProps {
   colors: any;
+  bills?: RecurringCharge[];
 }
 
 // Icon map for categories
@@ -48,17 +49,21 @@ const getCadenceLabel = (cadence: string) => {
   return map[cadence] || cadence;
 };
 
-export const UpcomingBillsCard = ({ colors }: UpcomingBillsCardProps) => {
+export const UpcomingBillsCard = ({ colors, bills = [] }: UpcomingBillsCardProps) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-  const sortedBills = [...recurringCharges].sort(
-    (a, b) => a.nextDate.getTime() - b.nextDate.getTime()
-  );
-  const totalUpcoming = sortedBills
-    .filter(b => getDaysUntil(b.nextDate) <= 7 && getDaysUntil(b.nextDate) >= 0)
-    .reduce((sum, b) => sum + b.avgAmount, 0);
+  const sortedBills = useMemo(() => {
+    return [...bills].sort((a, b) => a.nextDate.getTime() - b.nextDate.getTime());
+  }, [bills]);
+
+  const totalUpcoming = useMemo(() => {
+    return sortedBills
+      .filter(b => getDaysUntil(b.nextDate) <= 7 && getDaysUntil(b.nextDate) >= 0)
+      .reduce((sum, b) => sum + b.avgAmount, 0);
+  }, [sortedBills]);
+
   const displayedBills = sortedBills.slice(0, 3);
-  const remainingCount = sortedBills.length - 3;
+  const remainingCount = Math.max(0, sortedBills.length - 3);
 
   return (
     <Card>

@@ -1,0 +1,1 @@
+export { SimplePortfolioCard } from './SimplePortfolioCard';

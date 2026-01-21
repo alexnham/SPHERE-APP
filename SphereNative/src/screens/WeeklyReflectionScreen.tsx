@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Text } from 'react-native';
+import React, { useMemo, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Text, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { differenceInDays } from 'date-fns';
@@ -7,7 +7,6 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useViewMode } from '../contexts/ViewModeContext';
 import { Card } from '../components/Card';
 import { formatCurrency } from '../lib/utils';
-import { transactions, dailySpendData } from '../lib/mockData';
 import {
   WeeklyReflectionHeader,
   WeekSummary,
@@ -15,7 +14,13 @@ import {
   RepeatedPatterns,
   QuickReflection,
 } from '../components/weeklyReflection';
+import {
+  SimpleWeekSummary,
+  SimpleTopCategory,
+} from '../components/simple';
 import { CheckCircle, TrendingUp, TrendingDown, BarChart3 } from 'lucide-react-native';
+import { useTransactions } from '../hooks/useTransactions';
+import { generateDailySpendData } from '../lib/database';
 
 export default function WeeklyReflectionScreen() {
   const { colors } = useTheme();
@@ -23,32 +28,78 @@ export default function WeeklyReflectionScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const now = new Date();
+  const [dailySpendData, setDailySpendData] = React.useState<Array<{ date: Date; amount: number; categories: Record<string, number> }>>([]);
+  const [loadingDailySpend, setLoadingDailySpend] = React.useState(true);
+  
+  // Get transactions for last 30 days
+  const startDate = new Date(now);
+  startDate.setDate(startDate.getDate() - 30);
+  const { transactions, loading: transactionsLoading } = useTransactions({
+    start_date: startDate.toISOString().split('T')[0],
+    limit: 1000,
+  });
+
+  useEffect(() => {
+    const fetchDailySpend = async () => {
+      try {
+        setLoadingDailySpend(true);
+        const data = await generateDailySpendData();
+        setDailySpendData(data);
+      } catch (error) {
+        console.error('Error fetching daily spend data:', error);
+      } finally {
+        setLoadingDailySpend(false);
+      }
+    };
+    fetchDailySpend();
+  }, [transactions]);
 
   // Calculate this week vs last week
-  const thisWeekSpend = dailySpendData
-    .filter((d) => differenceInDays(now, new Date(d.date)) <= 7)
-    .reduce((sum, d) => sum + d.amount, 0);
+  const thisWeekSpend = useMemo(() => {
+    return dailySpendData
+      .filter((d) => differenceInDays(now, new Date(d.date)) <= 7)
+      .reduce((sum, d) => sum + d.amount, 0);
+  }, [dailySpendData, now]);
 
-  const lastWeekSpend = dailySpendData
-    .filter((d) => {
-      const days = differenceInDays(now, new Date(d.date));
-      return days > 7 && days <= 14;
-    })
-    .reduce((sum, d) => sum + d.amount, 0);
+  const lastWeekSpend = useMemo(() => {
+    return dailySpendData
+      .filter((d) => {
+        const days = differenceInDays(now, new Date(d.date));
+        return days > 7 && days <= 14;
+      })
+      .reduce((sum, d) => sum + d.amount, 0);
+  }, [dailySpendData, now]);
 
-  const percentChange =
-    lastWeekSpend > 0 ? ((thisWeekSpend - lastWeekSpend) / lastWeekSpend) * 100 : 0;
+  const percentChange = useMemo(() => {
+    return lastWeekSpend > 0 ? ((thisWeekSpend - lastWeekSpend) / lastWeekSpend) * 100 : 0;
+  }, [thisWeekSpend, lastWeekSpend]);
 
   // Get all transactions this week
-  const thisWeekTransactions = transactions
-    .filter((t) => differenceInDays(now, new Date(t.date)) <= 7 && t.amount > 0)
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const thisWeekTransactions = useMemo(() => {
+    return transactions
+      .filter((t) => differenceInDays(now, new Date(t.date)) <= 7 && t.amount < 0) // Spending is negative
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [transactions, now]);
 
   // Category breakdown
-  const categoryTotals: Record<string, number> = {};
-  thisWeekTransactions.forEach((t) => {
-    categoryTotals[t.category] = (categoryTotals[t.category] || 0) + t.amount;
-  });
+  const categoryTotals = useMemo(() => {
+    const totals: Record<string, number> = {};
+    thisWeekTransactions.forEach((t) => {
+      totals[t.category] = (totals[t.category] || 0) + Math.abs(t.amount);
+    });
+    return totals;
+  }, [thisWeekTransactions]);
+
+  const isLoading = transactionsLoading || loadingDailySpend;
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary, marginTop: 16 }]}>Loading...</Text>
+      </View>
+    );
+  }
   const sortedCategories = Object.entries(categoryTotals).sort(
     ([, a], [, b]) => b - a
   );
@@ -102,48 +153,19 @@ export default function WeeklyReflectionScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Week Summary - Simplified */}
-          <Card>
-            <View style={styles.simpleWeekSummary}>
-              <View style={styles.simpleWeekHeader}>
-                <BarChart3 size={20} color={colors.primary} strokeWidth={2} />
-                <Text style={[styles.simpleWeekTitle, { color: colors.text }]}>
-                  This Week
-                </Text>
-              </View>
-              <Text style={[styles.simpleWeekAmount, { color: colors.text }]}>
-                {formatCurrency(thisWeekSpend)}
-              </Text>
-              <View style={styles.simpleWeekTrend}>
-                {isSpendingDown ? (
-                  <TrendingDown size={18} color="#10b981" strokeWidth={2} />
-                ) : (
-                  <TrendingUp size={18} color="#f59e0b" strokeWidth={2} />
-                )}
-                <Text style={[
-                  styles.simpleWeekTrendText,
-                  { color: isSpendingDown ? '#10b981' : '#f59e0b' }
-                ]}>
-                  {Math.abs(percentChange).toFixed(0)}% vs last week
-                </Text>
-              </View>
-            </View>
-          </Card>
+          <SimpleWeekSummary
+            amount={thisWeekSpend}
+            changePercent={percentChange}
+            colors={colors}
+          />
 
           {/* Top Category */}
           {topCategory && (
-            <Card>
-              <View style={styles.simpleCategoryCard}>
-                <Text style={[styles.simpleCategoryLabel, { color: colors.textSecondary }]}>
-                  Top Category
-                </Text>
-                <Text style={[styles.simpleCategoryName, { color: colors.text }]}>
-                  {topCategory[0]}
-                </Text>
-                <Text style={[styles.simpleCategoryAmount, { color: colors.primary }]}>
-                  {formatCurrency(topCategory[1])}
-                </Text>
-              </View>
-            </Card>
+            <SimpleTopCategory
+              category={topCategory[0]}
+              amount={topCategory[1]}
+              colors={colors}
+            />
           )}
 
           {/* Category Breakdown - Simplified */}
@@ -217,53 +239,11 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   contentContainer: { padding: 16 },
   simpleContentContainer: { padding: 16, gap: 16 },
-  simpleWeekSummary: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  simpleWeekHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  simpleWeekTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  simpleWeekAmount: {
-    fontSize: 32,
-    fontWeight: '700',
-    marginBottom: 12,
-  },
-  simpleWeekTrend: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  simpleWeekTrendText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  simpleCategoryCard: {
-    padding: 20,
-    alignItems: 'center',
-  },
-  simpleCategoryLabel: {
-    fontSize: 13,
-    marginBottom: 8,
-  },
-  simpleCategoryName: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  simpleCategoryAmount: {
-    fontSize: 24,
-    fontWeight: '700',
-  },
   completeButton: { padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 8 },
   completeButtonContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   completeButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
   bottomPadding: { height: 40 },
+  loadingText: {
+    fontSize: 14,
+  },
 });

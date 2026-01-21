@@ -1,32 +1,37 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Polyline, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { transactions } from '../../lib/mockData';
+import { Transaction } from '../../lib/mockData';
 
 interface SpendingTrendLineProps {
   colors: any;
+  transactions?: Transaction[];
 }
 
-export const SpendingTrendLine = ({ colors }: SpendingTrendLineProps) => {
+export const SpendingTrendLine = ({ colors, transactions = [] }: SpendingTrendLineProps) => {
   const now = new Date();
   const currentDay = now.getDate();
 
-  const dailyData: { day: number; spending: number }[] = [];
-  let cumulative = 0;
+  const dailyData: { day: number; spending: number }[] = useMemo(() => {
+    const data: { day: number; spending: number }[] = [];
+    let cumulative = 0;
 
-  for (let day = 1; day <= currentDay; day++) {
-    const date = new Date(now.getFullYear(), now.getMonth(), day);
-    const daySpending = transactions
-      .filter(t => {
-        const tDate = new Date(t.date);
-        return tDate.getFullYear() === date.getFullYear() &&
-               tDate.getMonth() === date.getMonth() &&
-               tDate.getDate() === date.getDate();
-      })
-      .reduce((sum, t) => sum + t.amount, 0);
-    cumulative += daySpending;
-    dailyData.push({ day, spending: Math.round(cumulative) });
-  }
+    for (let day = 1; day <= currentDay; day++) {
+      const date = new Date(now.getFullYear(), now.getMonth(), day);
+      const daySpending = transactions
+        .filter(t => {
+          const tDate = new Date(t.date);
+          return tDate.getFullYear() === date.getFullYear() &&
+                 tDate.getMonth() === date.getMonth() &&
+                 tDate.getDate() === date.getDate() &&
+                 t.amount < 0; // Only spending (negative amounts)
+        })
+        .reduce((sum, t) => sum + Math.abs(t.amount), 0);
+      cumulative += daySpending;
+      data.push({ day, spending: Math.round(cumulative) });
+    }
+    return data;
+  }, [transactions, currentDay, now]);
 
   if (dailyData.length < 2) return null;
 
@@ -37,7 +42,12 @@ export const SpendingTrendLine = ({ colors }: SpendingTrendLineProps) => {
   const width = 280;
 
   const points = dailyData.map((d, i) => {
-    const x = (i / (dailyData.length - 1)) * width;
+    // Ensure the last point reaches exactly the full width
+    const x = dailyData.length > 1 
+      ? i === dailyData.length - 1 
+        ? width // Last point should be exactly at full width
+        : (i / (dailyData.length - 1)) * width
+      : 0;
     const y = height - ((d.spending - min) / range) * height;
     return `${x},${y}`;
   }).join(' ');

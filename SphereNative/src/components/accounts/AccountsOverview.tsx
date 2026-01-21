@@ -38,6 +38,9 @@ export const AccountsOverview = ({
   accountTypeIcons,
   colors,
 }: AccountsOverviewProps) => {
+  const assetsPercent = totalAssets > 0 ? 100 : 0;
+  const liabilitiesPercent = totalAssets > 0 ? (totalLiabilities / totalAssets) * 100 : 0;
+
   return (
     <Card>
       {/* Header */}
@@ -60,24 +63,57 @@ export const AccountsOverview = ({
         <Text style={[styles.netWorthBig, { color: colors.text }]}>
           {formatCurrency(netWorth)}
         </Text>
-        <View style={styles.netWorthMeta}>
-          <View style={styles.metaItem}>
-            <TrendingUp size={14} color="#10b981" strokeWidth={2} />
-            <Text style={[styles.metaLabel, { color: colors.textSecondary }]}>
-              Assets:
-            </Text>
-            <Text style={[styles.metaValue, { color: colors.text }]}>
-              {formatCurrency(totalAssets)}
-            </Text>
+      </View>
+
+      {/* Assets vs Liabilities Bars */}
+      <View style={styles.barsContainer}>
+        {/* Assets Bar */}
+        <View style={styles.barRow}>
+          <View style={styles.barLabelRow}>
+            <TrendingUp size={18} color="#10b981" strokeWidth={2} style={{ marginRight: 8 }} />
+            <View style={styles.barLabelContent}>
+              <View style={styles.barLabelTop}>
+                <Text style={[styles.barLabelText, { color: colors.textSecondary }]}>
+                  Assets
+                </Text>
+                <Text style={[styles.barAmount, { color: colors.text }]}>
+                  {formatCurrency(totalAssets)}
+                </Text>
+              </View>
+              <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${assetsPercent}%`, backgroundColor: '#10b981' },
+                  ]}
+                />
+              </View>
+            </View>
           </View>
-          <View style={styles.metaItem}>
-            <TrendingDown size={14} color="#ef4444" strokeWidth={2} />
-            <Text style={[styles.metaLabel, { color: colors.textSecondary }]}>
-              Debts:
-            </Text>
-            <Text style={[styles.metaValue, { color: colors.text }]}>
-              {formatCurrency(totalLiabilities)}
-            </Text>
+        </View>
+
+        {/* Liabilities Bar */}
+        <View style={styles.barRow}>
+          <View style={styles.barLabelRow}>
+            <TrendingDown size={18} color="#ef4444" strokeWidth={2} style={{ marginRight: 8 }} />
+            <View style={styles.barLabelContent}>
+              <View style={styles.barLabelTop}>
+                <Text style={[styles.barLabelText, { color: colors.textSecondary }]}>
+                  Debts
+                </Text>
+                <Text style={[styles.barAmount, { color: colors.text }]}>
+                  {formatCurrency(totalLiabilities)}
+                </Text>
+              </View>
+              <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${liabilitiesPercent}%`, backgroundColor: '#ef4444' },
+                  ]}
+                />
+              </View>
+            </View>
           </View>
         </View>
       </View>
@@ -149,28 +185,47 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   netWorthDisplay: {
+    alignItems: 'center',
     marginBottom: 24,
   },
   netWorthBig: {
-    fontSize: 32,
+    fontSize: 36,
     fontWeight: '700',
-    marginBottom: 12,
   },
-  netWorthMeta: {
-    flexDirection: 'row',
-    gap: 24,
+  barsContainer: {
+    gap: 16,
+    marginBottom: 20,
   },
-  metaItem: {
+  barRow: {
+    marginBottom: 8,
+  },
+  barLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
   },
-  metaLabel: {
-    fontSize: 12,
+  barLabelContent: {
+    flex: 1,
   },
-  metaValue: {
-    fontSize: 12,
+  barLabelTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  barLabelText: {
+    fontSize: 14,
+  },
+  barAmount: {
+    fontSize: 14,
     fontWeight: '600',
+  },
+  progressBar: {
+    height: 8,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
   },
   accountsSection: {
     marginTop: 8,

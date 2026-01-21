@@ -32,8 +32,19 @@ export const AccountBreakdownCard = ({
         <Svg width={barWidth} height={16}>
           {(() => {
             let currentX = 0;
-            return Object.entries(accountsByType).map(([type, amount], index) => {
-              const width = (amount / totalAssets) * barWidth;
+            const entries = Object.entries(accountsByType);
+            const lastIndex = entries.length - 1;
+            
+            return entries.map(([type, amount], index) => {
+              // Calculate width as percentage of total assets
+              const percentage = totalAssets > 0 ? (amount / totalAssets) : 0;
+              let width = percentage * barWidth;
+              
+              // Ensure last segment fills to the end to prevent gaps
+              if (index === lastIndex) {
+                width = Math.max(width, barWidth - currentX);
+              }
+              
               const x = currentX;
               currentX += width;
 
@@ -42,10 +53,8 @@ export const AccountBreakdownCard = ({
                   key={type}
                   x={x}
                   y={0}
-                  width={width}
+                  width={Math.max(0, width)}
                   height={16}
-                  rx={index === 0 ? 8 : 0}
-                  ry={index === 0 ? 8 : 0}
                   fill={accountTypeColors[type] || colors.primary}
                 />
               );
@@ -89,6 +98,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderRadius: 8,
     overflow: 'hidden',
+    backgroundColor: 'transparent',
   },
   legendContainer: {
     gap: 8,

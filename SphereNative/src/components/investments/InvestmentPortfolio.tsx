@@ -1,28 +1,50 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card } from '../Card';
 import { InfoTooltip } from '../shared';
 import { formatCurrency } from '../../lib/utils';
-import { investmentAccounts } from '../../lib/mockData';
+import { InvestmentAccount } from '../../lib/mockData';
 import { PerformanceChart } from './PerformanceChart';
 import { AllocationBar } from './AllocationBar';
 import { InvestmentAccountItem } from './InvestmentAccountItem';
-import {
-  portfolioValue,
-  totalGain,
-  gainPercent,
-  isPositive,
-  fiveYearProjection,
-  tenYearProjection,
-} from './constants';
 import { Lock, TrendingUp, TrendingDown, ChevronUp, ChevronDown, BarChart3 } from 'lucide-react-native';
 
 interface InvestmentPortfolioProps {
   colors: any;
+  investmentAccounts?: InvestmentAccount[];
 }
 
-export const InvestmentPortfolio = ({ colors }: InvestmentPortfolioProps) => {
+export const InvestmentPortfolio = ({ colors, investmentAccounts = [] }: InvestmentPortfolioProps) => {
   const [expanded, setExpanded] = useState(false);
+
+  // Calculate portfolio metrics
+  const portfolioValue = useMemo(() => {
+    return investmentAccounts.reduce((sum, acc) => sum + acc.balance, 0);
+  }, [investmentAccounts]);
+
+  const totalContributions = useMemo(() => {
+    return investmentAccounts.reduce((sum, acc) => sum + acc.contributions, 0);
+  }, [investmentAccounts]);
+
+  const totalGain = useMemo(() => portfolioValue - totalContributions, [portfolioValue, totalContributions]);
+  const gainPercent = useMemo(() => totalContributions > 0 ? (totalGain / totalContributions) * 100 : 0, [totalGain, totalContributions]);
+  const isPositive = totalGain >= 0;
+
+  // Projection calculation
+  const calculateProjection = (years: number, monthlyContribution: number = 500) => {
+    const annualReturn = 0.07;
+    const monthlyReturn = annualReturn / 12;
+    const months = years * 12;
+
+    let futureValue = portfolioValue;
+    for (let i = 0; i < months; i++) {
+      futureValue = futureValue * (1 + monthlyReturn) + monthlyContribution;
+    }
+    return futureValue;
+  };
+
+  const fiveYearProjection = useMemo(() => calculateProjection(5), [portfolioValue]);
+  const tenYearProjection = useMemo(() => calculateProjection(10), [portfolioValue]);
 
   return (
     <Card>

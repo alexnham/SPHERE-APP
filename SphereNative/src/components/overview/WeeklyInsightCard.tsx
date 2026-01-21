@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card } from '../Card';
 import { formatCurrency } from '../../lib/utils';
-import { dailySpendData } from '../../lib/mockData';
+import { DailySpend } from '../../lib/mockData';
 import { MiniSparkline } from './MiniSparkline';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,23 +11,24 @@ import { Sparkles, BarChart3, PartyPopper } from 'lucide-react-native';
 
 interface WeeklyInsightCardProps {
   colors: any;
+  dailySpendData?: DailySpend[];
 }
 
-export const WeeklyInsightCard = ({ colors }: WeeklyInsightCardProps) => {
+export const WeeklyInsightCard = ({ colors, dailySpendData = [] }: WeeklyInsightCardProps) => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   // Get last 14 days spending
-  const last14Days = dailySpendData.slice(0, 14);
-  const thisWeek = last14Days.slice(0, 7);
-  const lastWeek = last14Days.slice(7, 14);
+  const last14Days = useMemo(() => dailySpendData.slice(0, 14), [dailySpendData]);
+  const thisWeek = useMemo(() => last14Days.slice(0, 7), [last14Days]);
+  const lastWeek = useMemo(() => last14Days.slice(7, 14), [last14Days]);
 
-  const thisWeekTotal = thisWeek.reduce((sum, d) => sum + d.amount, 0);
-  const lastWeekTotal = lastWeek.reduce((sum, d) => sum + d.amount, 0);
-  const weekChange = lastWeekTotal > 0 ? ((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 100 : 0;
+  const thisWeekTotal = useMemo(() => thisWeek.reduce((sum, d) => sum + d.amount, 0), [thisWeek]);
+  const lastWeekTotal = useMemo(() => lastWeek.reduce((sum, d) => sum + d.amount, 0), [lastWeek]);
+  const weekChange = useMemo(() => lastWeekTotal > 0 ? ((thisWeekTotal - lastWeekTotal) / lastWeekTotal) * 100 : 0, [thisWeekTotal, lastWeekTotal]);
   const isDown = weekChange < 0;
 
   // Sparkline data
-  const sparklineData = thisWeek.map(d => d.amount).reverse();
+  const sparklineData = useMemo(() => thisWeek.map(d => d.amount).reverse(), [thisWeek]);
 
   return (
     <TouchableOpacity onPress={() => navigation.navigate('WeeklyReflection')}>
