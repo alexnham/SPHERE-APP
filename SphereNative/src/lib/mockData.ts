@@ -13,8 +13,12 @@ export interface Account {
 export interface Transaction {
   id: string;
   accountId: string;
-  date: Date;
+  date: Date; // Posted date
+  authorizedDate?: Date; // Purchase date (authorized_date)
+  datetime?: Date; // Posted datetime
+  authorizedDatetime?: Date; // Purchase datetime (authorized_datetime)
   amount: number;
+  direction?: 'INFLOW' | 'OUTFLOW'; // INFLOW = income/deposits, OUTFLOW = expenses/purchases
   merchant: string;
   category: string;
   pending: boolean;

@@ -9,6 +9,8 @@ interface UseTransactionsOptions {
   pending?: boolean;
   start_date?: string;
   end_date?: string;
+  authorized_start_date?: string;
+  authorized_end_date?: string;
 }
 
 export const useTransactions = (options?: UseTransactionsOptions) => {

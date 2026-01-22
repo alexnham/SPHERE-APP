@@ -28,18 +28,18 @@ export default function BillsScreen() {
 
   const totalMonthly = useMemo(() => {
     return sortedBills
-      .filter((b) => b.cadence === 'monthly')
-      .reduce((sum, b) => sum + b.avgAmount, 0);
+    .filter((b) => b.cadence === 'monthly')
+    .reduce((sum, b) => sum + b.avgAmount, 0);
   }, [sortedBills]);
 
   const totalUpcoming = useMemo(() => {
     return sortedBills
-      .filter(
-        (b) =>
-          differenceInDays(b.nextDate, new Date()) <= 7 &&
-          differenceInDays(b.nextDate, new Date()) >= 0
-      )
-      .reduce((sum, b) => sum + b.avgAmount, 0);
+    .filter(
+      (b) =>
+        differenceInDays(b.nextDate, new Date()) <= 7 &&
+        differenceInDays(b.nextDate, new Date()) >= 0
+    )
+    .reduce((sum, b) => sum + b.avgAmount, 0);
   }, [sortedBills]);
 
   const acknowledgeBill = (billId: string) => {
@@ -48,9 +48,9 @@ export default function BillsScreen() {
 
   const thisWeek = useMemo(() => {
     return sortedBills.filter((b) => {
-      const days = differenceInDays(b.nextDate, new Date());
-      return days >= 0 && days <= 7;
-    });
+    const days = differenceInDays(b.nextDate, new Date());
+    return days >= 0 && days <= 7;
+  });
   }, [sortedBills]);
 
   const laterBills = useMemo(() => {
@@ -104,7 +104,7 @@ export default function BillsScreen() {
               <Text style={[styles.simpleSectionTitle, { color: colors.text }]}>
                 Due This Week ({thisWeek.length})
               </Text>
-              {thisWeek.slice(0, 3).map((bill) => {
+              {thisWeek.slice(0, totalUpcoming).map((bill) => {
                 const daysUntil = differenceInDays(bill.nextDate, new Date());
                 const isUrgent = daysUntil <= 3;
                 return (
@@ -113,7 +113,11 @@ export default function BillsScreen() {
                       <View style={styles.simpleBillLeft}>
                         {isUrgent && <AlertCircle size={16} color="#ef4444" strokeWidth={2} />}
                         <View style={styles.simpleBillInfo}>
-                          <Text style={[styles.simpleBillName, { color: colors.text }]}>
+                          <Text 
+                            style={[styles.simpleBillName, { color: colors.text }]}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
                             {bill.merchant}
                           </Text>
                           <Text style={[styles.simpleBillDate, { color: colors.textSecondary }]}>
@@ -121,7 +125,10 @@ export default function BillsScreen() {
                           </Text>
                         </View>
                       </View>
-                      <Text style={[styles.simpleBillAmount, { color: colors.text }]}>
+                      <Text 
+                        style={[styles.simpleBillAmount, { color: colors.text }]}
+                        numberOfLines={1}
+                      >
                         {formatCurrency(bill.avgAmount)}
                       </Text>
                     </View>
@@ -184,34 +191,36 @@ const styles = StyleSheet.create({
   header: { paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1 },
   scrollView: { flex: 1 },
   contentContainer: { padding: 16 },
-  simpleContentContainer: { padding: 16, gap: 16 },
+  simpleContentContainer: { padding: 16, gap: 20 },
   simpleBillsSection: {
-    gap: 12,
+    gap: 4,
+    marginTop: 4,
   },
   simpleSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   simpleBillItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
   },
   simpleBillLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     flex: 1,
+    marginRight: 12,
   },
   simpleBillInfo: {
     flex: 1,
+    minWidth: 0,
   },
   simpleBillName: {
     fontSize: 15,
     fontWeight: '500',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   simpleBillDate: {
     fontSize: 12,
@@ -219,6 +228,7 @@ const styles = StyleSheet.create({
   simpleBillAmount: {
     fontSize: 16,
     fontWeight: '600',
+    flexShrink: 0,
   },
   bottomPadding: { height: 40 },
   loadingText: {

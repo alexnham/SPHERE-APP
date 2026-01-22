@@ -96,8 +96,14 @@ export const UpcomingBillsCard = ({ colors, bills = [] }: UpcomingBillsCardProps
                 <View style={[styles.billIcon, { backgroundColor: `${colors.border}80` }]}>
                   {getCategoryIcon(bill.category, colors.textSecondary)}
                 </View>
-                <View>
-                  <Text style={[styles.billName, { color: colors.text }]}>{bill.merchant}</Text>
+                <View style={styles.billInfo}>
+                  <Text 
+                    style={[styles.billName, { color: colors.text }]} 
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {bill.merchant}
+                  </Text>
                   <Text style={[styles.billCadence, { color: colors.textSecondary }]}>
                     {getCadenceLabel(bill.cadence)}
                   </Text>
@@ -176,6 +182,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    flex: 1,
+    minWidth: 0,
   },
   billIcon: {
     width: 36,
@@ -183,6 +191,11 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    flexShrink: 0,
+  },
+  billInfo: {
+    flex: 1,
+    minWidth: 0,
   },
   billName: {
     fontSize: 14,

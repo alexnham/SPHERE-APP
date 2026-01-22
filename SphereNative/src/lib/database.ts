@@ -30,7 +30,11 @@ export interface DatabaseTransaction {
   account_id: string;
   user_id: string;
   amount: number;
-  date: string;
+  direction?: 'INFLOW' | 'OUTFLOW'; // INFLOW = income/deposits, OUTFLOW = expenses/purchases
+  date: string; // Posted date (YYYY-MM-DD)
+  authorized_date?: string; // Authorized/purchase date (YYYY-MM-DD)
+  datetime?: string; // Posted datetime (ISO 8601)
+  authorized_datetime?: string; // Authorized/purchase datetime (ISO 8601)
   merchant_name?: string;
   primary_category?: string;
   name?: string;
@@ -45,6 +49,7 @@ export interface DatabaseTransaction {
     subtype?: string;
     mask?: string;
   };
+  recurring_stream?: any;
 }
 
 export interface DatabaseLiability {
@@ -149,11 +154,26 @@ export const mapAccount = (dbAccount: DatabaseAccount): Account => {
 };
 
 export const mapTransaction = (dbTransaction: DatabaseTransaction): Transaction => {
+  // Parse date strings (YYYY-MM-DD) to Date objects
+  // Ensure dates are parsed in local timezone to avoid timezone issues
+  const parseDate = (dateStr: string): Date => {
+    // If date is in YYYY-MM-DD format, parse it as local date
+    const parts = dateStr.split('T')[0].split('-');
+    if (parts.length === 3) {
+      return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    }
+    return new Date(dateStr);
+  };
+
   return {
     id: dbTransaction.id,
     accountId: dbTransaction.account_id,
-    date: new Date(dbTransaction.date),
+    date: parseDate(dbTransaction.date), // Posted date
+    authorizedDate: dbTransaction.authorized_date ? parseDate(dbTransaction.authorized_date) : undefined, // Purchase date
+    datetime: dbTransaction.datetime ? new Date(dbTransaction.datetime) : undefined, // Posted datetime
+    authorizedDatetime: dbTransaction.authorized_datetime ? new Date(dbTransaction.authorized_datetime) : undefined, // Purchase datetime
     amount: dbTransaction.amount,
+    direction: dbTransaction.direction, // INFLOW or OUTFLOW
     merchant: dbTransaction.merchant_name || dbTransaction.name || 'Unknown',
     category: dbTransaction.primary_category || dbTransaction.category?.[0] || 'Other',
     pending: dbTransaction.pending || false,
@@ -216,6 +236,8 @@ export const getTransactions = async (options?: {
   pending?: boolean;
   start_date?: string;
   end_date?: string;
+  authorized_start_date?: string;
+  authorized_end_date?: string;
 }): Promise<Transaction[]> => {
   const params = new URLSearchParams();
   if (options?.limit) params.append('limit', options.limit.toString());
@@ -225,6 +247,8 @@ export const getTransactions = async (options?: {
   if (options?.pending !== undefined) params.append('pending', options.pending.toString());
   if (options?.start_date) params.append('start_date', options.start_date);
   if (options?.end_date) params.append('end_date', options.end_date);
+  if (options?.authorized_start_date) params.append('authorized_start_date', options.authorized_start_date);
+  if (options?.authorized_end_date) params.append('authorized_end_date', options.authorized_end_date);
 
   const queryString = params.toString();
   const url = `/api/transactions${queryString ? `?${queryString}` : ''}`;

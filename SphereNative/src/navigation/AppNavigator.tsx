@@ -122,12 +122,16 @@ const MainTabs = () => {
           borderTopWidth: 1,
           paddingTop: 8,
           paddingBottom: 8,
+          paddingHorizontal: 12,
           height: 70,
         },
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',
           marginTop: 4,
+        },
+        tabBarItemStyle: {
+          paddingHorizontal: 4,
         },
       })}
     >

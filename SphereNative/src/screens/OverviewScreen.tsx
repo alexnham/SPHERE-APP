@@ -121,8 +121,8 @@ export default function OverviewScreen() {
 
   // Simple View - Clean, minimal UI with visual elements
   if (isSimpleView) {
-    const maxTotal = 10000; // Reference point for progress calculation
-    const ringProgress = Math.min(1, totalAvailable / maxTotal);
+    const ringProgress = safeToSpend / totalAvailable
+    console.log(ringProgress);
 
     return (
       <ScrollView
@@ -175,8 +175,6 @@ export default function OverviewScreen() {
         <View style={styles.simpleActionsContainer}>
           {[
             { label: 'Upcoming Bills', path: 'Bills' as const, icon: Calendar },
-            { label: 'Spending & Budget', path: 'Main' as const, icon: BarChart3 },
-            { label: 'Your Accounts', path: 'Main' as const, icon: CreditCard },
           ].map((item, index) => (
             <TouchableOpacity
               key={item.label}

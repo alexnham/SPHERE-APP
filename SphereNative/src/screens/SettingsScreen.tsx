@@ -27,9 +27,11 @@ import {
   HelpCircle,
   Rocket,
   ChevronRight,
+  RefreshCw,
   type LucideIcon,
 } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
+import { refreshData } from '../lib/database';
 
 // Mock user data
 const mockUser = {
@@ -91,6 +93,7 @@ export default function SettingsScreen() {
   const [pushNotifications, setPushNotifications] = useState(true);
   const [biometricAuth, setBiometricAuth] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [syncing, setSyncing] = useState(false);
 
   const initials = mockUser.name
     .split(' ')
@@ -112,6 +115,23 @@ export default function SettingsScreen() {
       Alert.alert('Sign out failed', 'An unexpected error occurred');
     } finally {
       setSigningOut(false);
+    }
+  };
+
+  const handleSync = async () => {
+    try {
+      setSyncing(true);
+      const result = await refreshData();
+      if (result.success) {
+        Alert.alert('Success', 'Data synced successfully. Pull down to refresh or navigate away and back to see updated data.');
+      } else {
+        Alert.alert('Error', 'Failed to sync data. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error syncing data:', error);
+      Alert.alert('Error', 'Failed to sync data. Please try again.');
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -270,6 +290,31 @@ export default function SettingsScreen() {
               thumbColor="#fff"
             />
           </View>
+
+          {/* Sync Data */}
+          <TouchableOpacity
+            style={[styles.toggleItem, { backgroundColor: colors.surface }]}
+            onPress={handleSync}
+            disabled={syncing}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
+              {syncing ? (
+                <ActivityIndicator size={20} color={colors.primary} />
+              ) : (
+                <RefreshCw size={20} color={colors.textSecondary} strokeWidth={2} />
+              )}
+            </View>
+            <View style={styles.toggleContent}>
+              <Text style={[styles.settingLabel, { color: colors.text }]}>
+                Sync Data
+              </Text>
+              <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
+                {syncing ? 'Syncing...' : 'Refresh all accounts and transactions'}
+              </Text>
+            </View>
+            {!syncing && <ChevronRight size={20} color={colors.textSecondary} strokeWidth={2} />}
+          </TouchableOpacity>
         </Card>
 
         {/* Account Settings */}

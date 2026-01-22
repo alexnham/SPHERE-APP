@@ -36,8 +36,8 @@ const accountTypeIcons: Record<string, string> = {
 export default function AccountsScreen() {
   const { colors } = useTheme();
   const { isSimpleView } = useViewMode();
-  const { accounts, loading: accountsLoading } = useAccounts();
-  const { liabilities, loading: liabilitiesLoading } = useLiabilities();
+  const { accounts, loading: accountsLoading, refresh: refreshAccounts } = useAccounts();
+  const { liabilities, loading: liabilitiesLoading, refresh: refreshLiabilities } = useLiabilities();
   const [netWorthData, setNetWorthData] = React.useState<{ assets: number; liabilities: number; netWorth: number } | null>(null);
   const [loadingNetWorth, setLoadingNetWorth] = React.useState(true);
 
@@ -155,15 +155,21 @@ export default function AccountsScreen() {
         totalLiabilities={totalLiabilities}
         accountTypeIcons={accountTypeIcons}
         colors={colors}
+        onRefresh={async () => {
+          await Promise.all([refreshAccounts(), refreshLiabilities()]);
+        }}
       />
 
             {/* Account Breakdown */}
-            <AccountBreakdownCard
+      <AccountBreakdownCard
         accountsByType={accountsByType}
         totalAssets={totalAssets}
         accountTypeColors={accountTypeColors}
         colors={colors}
       />
+
+      {/* Savings Vaults */}
+      <SavingsVaults colors={colors} />
 
 
 

@@ -28,6 +28,7 @@ interface AccountsOverviewProps {
   totalLiabilities: number;
   accountTypeIcons: Record<string, string>;
   colors: any;
+  onRefresh?: () => void;
 }
 
 export const AccountsOverview = ({
@@ -37,9 +38,8 @@ export const AccountsOverview = ({
   totalLiabilities,
   accountTypeIcons,
   colors,
+  onRefresh,
 }: AccountsOverviewProps) => {
-  const assetsPercent = totalAssets > 0 ? 100 : 0;
-  const liabilitiesPercent = totalAssets > 0 ? (totalLiabilities / totalAssets) * 100 : 0;
 
   return (
     <Card>
@@ -52,7 +52,10 @@ export const AccountsOverview = ({
           <TouchableOpacity style={styles.actionButton}>
             <ArrowUpRight size={18} color={colors.primary} strokeWidth={2} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={onRefresh}
+          >
             <RefreshCw size={18} color={colors.textSecondary} strokeWidth={2} />
           </TouchableOpacity>
         </View>
@@ -65,56 +68,25 @@ export const AccountsOverview = ({
         </Text>
       </View>
 
-      {/* Assets vs Liabilities Bars */}
-      <View style={styles.barsContainer}>
-        {/* Assets Bar */}
-        <View style={styles.barRow}>
-          <View style={styles.barLabelRow}>
-            <TrendingUp size={18} color="#10b981" strokeWidth={2} style={{ marginRight: 8 }} />
-            <View style={styles.barLabelContent}>
-              <View style={styles.barLabelTop}>
-                <Text style={[styles.barLabelText, { color: colors.textSecondary }]}>
-                  Assets
-                </Text>
-                <Text style={[styles.barAmount, { color: colors.text }]}>
-                  {formatCurrency(totalAssets)}
-                </Text>
-              </View>
-              <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${assetsPercent}%`, backgroundColor: '#10b981' },
-                  ]}
-                />
-              </View>
-            </View>
-          </View>
+      {/* Assets vs Liabilities Summary */}
+      <View style={styles.summaryContainer}>
+        <View style={styles.summaryRow}>
+          <TrendingUp size={18} color="#10b981" strokeWidth={2} />
+          <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+            Assets:
+          </Text>
+          <Text style={[styles.summaryAmount, { color: colors.text }]}>
+            {formatCurrency(totalAssets)}
+          </Text>
         </View>
-
-        {/* Liabilities Bar */}
-        <View style={styles.barRow}>
-          <View style={styles.barLabelRow}>
-            <TrendingDown size={18} color="#ef4444" strokeWidth={2} style={{ marginRight: 8 }} />
-            <View style={styles.barLabelContent}>
-              <View style={styles.barLabelTop}>
-                <Text style={[styles.barLabelText, { color: colors.textSecondary }]}>
-                  Debts
-                </Text>
-                <Text style={[styles.barAmount, { color: colors.text }]}>
-                  {formatCurrency(totalLiabilities)}
-                </Text>
-              </View>
-              <View style={[styles.progressBar, { backgroundColor: colors.border }]}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${liabilitiesPercent}%`, backgroundColor: '#ef4444' },
-                  ]}
-                />
-              </View>
-            </View>
-          </View>
+        <View style={styles.summaryRow}>
+          <TrendingDown size={18} color="#ef4444" strokeWidth={2} />
+          <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+            Debts:
+          </Text>
+          <Text style={[styles.summaryAmount, { color: colors.text }]}>
+            {formatCurrency(totalLiabilities)}
+          </Text>
         </View>
       </View>
 
@@ -192,40 +164,22 @@ const styles = StyleSheet.create({
     fontSize: 36,
     fontWeight: '700',
   },
-  barsContainer: {
-    gap: 16,
+  summaryContainer: {
+    gap: 12,
     marginBottom: 20,
   },
-  barRow: {
-    marginBottom: 8,
-  },
-  barLabelRow: {
+  summaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
   },
-  barLabelContent: {
+  summaryLabel: {
+    fontSize: 14,
     flex: 1,
   },
-  barLabelTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  barLabelText: {
-    fontSize: 14,
-  },
-  barAmount: {
+  summaryAmount: {
     fontSize: 14,
     fontWeight: '600',
-  },
-  progressBar: {
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 4,
   },
   accountsSection: {
     marginTop: 8,

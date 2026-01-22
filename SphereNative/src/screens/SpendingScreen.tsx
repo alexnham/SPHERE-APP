@@ -25,9 +25,16 @@ export default function SpendingScreen() {
   const [activeTab, setActiveTab] = useState<'spending' | 'budget'>('spending');
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  // Fetch transactions for the last 3 months to support calendar navigation
+  // Use posted date range since calendar displays by posted date
+  const calendarStartDate = new Date(now);
+  calendarStartDate.setMonth(calendarStartDate.getMonth() - 3);
+  const calendarEndDate = new Date(now);
+  calendarEndDate.setDate(calendarEndDate.getDate() + 1); // Include today
   const { transactions, loading: transactionsLoading } = useTransactions({
-    start_date: startOfMonth.toISOString().split('T')[0],
-    limit: 1000,
+    start_date: calendarStartDate.toISOString().split('T')[0],
+    end_date: calendarEndDate.toISOString().split('T')[0],
+    limit: 2000,
   });
   const [totalBudget, setTotalBudget] = useState(1700); // TODO: Fetch from budgets API
 
@@ -87,7 +94,7 @@ export default function SpendingScreen() {
         </Card>
 
         {/* Calendar */}
-        <SpendingCalendar colors={colors} />
+        <SpendingCalendar colors={colors} transactions={transactions} />
 
         <View style={styles.bottomPadding} />
       </ScrollView>
@@ -130,7 +137,7 @@ export default function SpendingScreen() {
       {/* Tab Content */}
       {activeTab === 'spending' ? (
         <>
-          <SpendingInsights colors={colors} />
+          <SpendingInsights colors={colors} transactions={transactions} />
           <SpendingCalendar colors={colors} transactions={transactions} />
         </>
       ) : (
