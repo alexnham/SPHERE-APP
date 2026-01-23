@@ -21,32 +21,10 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
   const [showCustomInput, setShowCustomInput] = useState(false);
   const [customValue, setCustomValue] = useState('');
 
-  // Find Rainy Day vault (or first vault if Rainy Day doesn't exist)
-  const rainyDayVault = useMemo(() => {
-    return vaults.find(v => v.name.toLowerCase().includes('buffer')) || vaults[0];
+  // Find Buffer vault (case-insensitive search)
+  const bufferVault = useMemo(() => {
+    return vaults.find(v => v.name.toLowerCase().includes('buffer'));
   }, [vaults]);
-
-  // Create Rainy Day vault if it doesn't exist
-  useEffect(() => {
-    const ensureRainyDayVault = async () => {
-      if (!vaultsLoading && vaults.length === 0) {
-        try {
-          await createVault({
-            name: 'buffer',
-            icon: '☔',
-            balance: 0,
-            color: 'from-blue-400 to-blue-500',
-            description: 'For unexpected moments',
-          });
-          await refreshVaults();
-        } catch (error) {
-          console.error('Error creating Rainy Day vault:', error);
-        }
-      }
-    };
-    ensureRainyDayVault();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vaultsLoading, vaults.length]);
 
   // Fetch profile for round-up settings
   useEffect(() => {
@@ -69,13 +47,13 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
   const roundUpMultiplier = profile?.round_up_multiplier ?? 1;
 
   const handleQuickAdd = async (amount: number) => {
-    if (!rainyDayVault) return;
+    if (!bufferVault) return;
     
     try {
       setUpdating(true);
-      const newBalance = (rainyDayVault.balance || 0) + amount;
+      const newBalance = (bufferVault.balance || 0) + amount;
       await updateVault({
-        id: rainyDayVault.id,
+        id: bufferVault.id,
         balance: newBalance,
       });
       await refreshVaults();
@@ -87,16 +65,16 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
   };
 
   const handleCustomAdd = async () => {
-    if (!rainyDayVault || !customValue) return;
+    if (!bufferVault || !customValue) return;
     
     const amount = parseFloat(customValue);
     if (isNaN(amount) || amount <= 0) return;
     
     try {
       setUpdating(true);
-      const newBalance = (rainyDayVault.balance || 0) + amount;
+      const newBalance = (bufferVault.balance || 0) + amount;
       await updateVault({
-        id: rainyDayVault.id,
+        id: bufferVault.id,
         balance: newBalance,
       });
       await refreshVaults();
@@ -110,7 +88,7 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
   };
 
   const handleSetCustomValue = async () => {
-    if (!rainyDayVault || !customValue) return;
+    if (!bufferVault || !customValue) return;
     
     const amount = parseFloat(customValue);
     if (isNaN(amount) || amount < 0) return;
@@ -118,7 +96,7 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
     try {
       setUpdating(true);
       await updateVault({
-        id: rainyDayVault.id,
+        id: bufferVault.id,
         balance: amount,
       });
       await refreshVaults();
@@ -143,7 +121,7 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
     }
   };
 
-  const balance = rainyDayVault?.balance || 0;
+  const balance = bufferVault?.balance || 0;
   const isLoading = vaultsLoading || loadingProfile;
 
   // Show loading state
@@ -160,13 +138,13 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
     );
   }
 
-  // Show message if no vault exists
-  if (!rainyDayVault) {
+  // Show message if no buffer vault exists
+  if (!bufferVault) {
     return (
       <Card>
         <View style={styles.emptyContainer}>
           <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
-            No savings vault found. A Rainy Day vault will be created automatically.
+            No Buffer vault found. A Buffer vault will be created automatically.
           </Text>
         </View>
       </Card>
@@ -182,7 +160,7 @@ export const SavingsVaults = ({ colors }: SavingsVaultsProps) => {
             <Umbrella size={18} color={colors.textSecondary} strokeWidth={2} />
           </View>
           <Text style={[styles.vaultLabel, { color: colors.textSecondary }]}>
-            {"Rainy Day Buffer"}
+            {bufferVault.name}
           </Text>
           <InfoTooltip
             title="Rainy Day Buffer"

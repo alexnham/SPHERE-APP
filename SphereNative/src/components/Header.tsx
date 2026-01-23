@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { format } from 'date-fns';
 import { useTheme } from '../contexts/ThemeContext';
 import { useViewMode } from '../contexts/ViewModeContext';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Bell, Settings, LayoutGrid, LayoutList } from 'lucide-react-native';
+import { getProfile } from '../lib/database';
 
 interface HeaderProps {
   onSettingsPress?: () => void;
@@ -23,7 +24,30 @@ export const Header = ({ onSettingsPress, onNotificationsPress }: HeaderProps) =
   const { isSimpleView, setViewMode } = useViewMode();
   const insets = useSafeAreaInsets();
   const now = new Date();
-  const displayName = 'there'; // Can be replaced with actual user name
+  const [profile, setProfile] = useState<any>(null);
+
+  // Fetch profile to get first name
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profileData = await getProfile();
+        setProfile(profileData);
+      } catch (error) {
+        console.error('Error fetching profile in Header:', error);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  // Get first name from profile
+  const getFirstName = () => {
+    if (!profile) return 'there';
+    const fullName = profile.full_name || profile.display_name || '';
+    const firstName = fullName.split(' ')[0] || profile.display_name || 'there';
+    return firstName;
+  };
+
+  const displayName = getFirstName();
 
   const toggleViewMode = () => {
     setViewMode(isSimpleView ? 'detailed' : 'simple');

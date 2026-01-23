@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Switch,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../contexts/ThemeContext';
@@ -31,20 +32,9 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
-import { refreshData } from '../lib/database';
-
-// Mock user data
-const mockUser = {
-  name: 'Alex Johnson',
-  email: 'alex.johnson@gmail.com',
-  phone: '+1 (555) 123-4567',
-  memberSince: 'January 2024',
-};
-
-const mockConnectedBanks = [
-  { name: 'Chase Bank', accounts: 3, lastSync: '2 hours ago' },
-  { name: 'Bank of America', accounts: 2, lastSync: '1 day ago' },
-];
+import { refreshData, getProfile, updateProfile } from '../lib/database';
+import { useAccounts } from '../hooks/useAccounts';
+import { format } from 'date-fns';
 
 // Icon map for settings
 const settingIconMap: Record<string, LucideIcon> = {
@@ -89,16 +79,65 @@ export default function SettingsScreen() {
   const { colors, isDark, toggleTheme } = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
+  const { accounts, loading: accountsLoading } = useAccounts();
 
+  const [profile, setProfile] = useState<any>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [biometricAuth, setBiometricAuth] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [updatingSetting, setUpdatingSetting] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
 
-  const initials = mockUser.name
+  // Fetch profile data
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setLoadingProfile(true);
+        const profileData = await getProfile();
+        setProfile(profileData);
+        setPushNotifications(profileData.round_up_enabled ?? true);
+        setAvatarError(false); // Reset avatar error when profile loads
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
+  // Get connected banks from accounts
+  const connectedBanks = useMemo(() => {
+    const bankMap = new Map<string, { name: string; accounts: number }>();
+    
+    accounts.forEach(account => {
+      const bankName = account.institution || 'Unknown Bank';
+      const existing = bankMap.get(bankName);
+      if (existing) {
+        existing.accounts += 1;
+      } else {
+        bankMap.set(bankName, { name: bankName, accounts: 1 });
+      }
+    });
+
+    return Array.from(bankMap.values());
+  }, [accounts]);
+
+  // Get user info from profile
+  const userName = profile?.full_name || profile?.display_name || 'User';
+  const userEmail = profile?.email || '';
+  const memberSince = profile?.created_at 
+    ? format(new Date(profile.created_at), 'MMMM yyyy')
+    : 'Recently';
+
+  const initials = userName
     .split(' ')
-    .map((n) => n[0])
-    .join('');
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -135,6 +174,28 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleUpdateSetting = async (field: string, value: boolean) => {
+    if (!profile) return;
+    
+    try {
+      setUpdatingSetting(true);
+      const updatedProfile = { ...profile, [field]: value };
+      setProfile(updatedProfile);
+      await updateProfile({ [field]: value });
+      
+      if (field === 'round_up_enabled') {
+        setPushNotifications(value);
+      }
+    } catch (error) {
+      console.error('Error updating setting:', error);
+      Alert.alert('Error', 'Failed to update setting. Please try again.');
+      // Revert on error
+      setProfile(profile);
+    } finally {
+      setUpdatingSetting(false);
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
@@ -165,25 +226,41 @@ export default function SettingsScreen() {
       >
         {/* Profile Card */}
         <Card>
-          <View style={styles.profileSection}>
-            <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
-              <Text style={styles.avatarText}>{initials}</Text>
+          {loadingProfile ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={colors.primary} />
             </View>
-            <View style={styles.profileInfo}>
-              <Text style={[styles.profileName, { color: colors.text }]}>
-                {mockUser.name}
-              </Text>
-              <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>
-                {mockUser.email}
-              </Text>
-              <Text style={[styles.profileMember, { color: colors.textSecondary }]}>
-                Member since {mockUser.memberSince}
-              </Text>
+          ) : (
+            <View style={styles.profileSection}>
+              <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+                {profile?.avatar_url && !avatarError ? (
+                  <Image
+                    source={{ uri: profile.avatar_url }}
+                    style={styles.avatarImage}
+                    onError={() => {
+                      setAvatarError(true);
+                    }}
+                  />
+                ) : (
+                  <Text style={styles.avatarText}>{initials}</Text>
+                )}
+              </View>
+              <View style={styles.profileInfo}>
+                <Text style={[styles.profileName, { color: colors.text }]}>
+                  {userName}
+                </Text>
+                <Text style={[styles.profileEmail, { color: colors.textSecondary }]}>
+                  {userEmail}
+                </Text>
+                <Text style={[styles.profileMember, { color: colors.textSecondary }]}>
+                  Member since {memberSince}
+                </Text>
+              </View>
+              <TouchableOpacity>
+                <Text style={[styles.editButton, { color: colors.primary }]}>Edit</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity>
-              <Text style={[styles.editButton, { color: colors.primary }]}>Edit</Text>
-            </TouchableOpacity>
-          </View>
+          )}
         </Card>
 
         {/* Connected Banks */}
@@ -191,25 +268,35 @@ export default function SettingsScreen() {
           <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>
             Connected Banks
           </Text>
-          {mockConnectedBanks.map((bank, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.bankItem, { backgroundColor: colors.surface }]}
-            >
-              <View style={[styles.bankIcon, { backgroundColor: colors.muted }]}>
-                <Building2 size={20} color={colors.textSecondary} strokeWidth={2} />
-              </View>
-              <View style={styles.bankInfo}>
-                <Text style={[styles.bankName, { color: colors.text }]}>
-                  {bank.name}
-                </Text>
-                <Text style={[styles.bankMeta, { color: colors.textSecondary }]}>
-                  {bank.accounts} accounts • Synced {bank.lastSync}
-                </Text>
-              </View>
-              <ChevronRight size={20} color={colors.textSecondary} strokeWidth={2} />
-            </TouchableOpacity>
-          ))}
+          {accountsLoading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={colors.primary} />
+            </View>
+          ) : connectedBanks.length > 0 ? (
+            connectedBanks.map((bank, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.bankItem, { backgroundColor: colors.surface }]}
+              >
+                <View style={[styles.bankIcon, { backgroundColor: colors.muted }]}>
+                  <Building2 size={20} color={colors.textSecondary} strokeWidth={2} />
+                </View>
+                <View style={styles.bankInfo}>
+                  <Text style={[styles.bankName, { color: colors.text }]}>
+                    {bank.name}
+                  </Text>
+                  <Text style={[styles.bankMeta, { color: colors.textSecondary }]}>
+                    {bank.accounts} {bank.accounts === 1 ? 'account' : 'accounts'}
+                  </Text>
+                </View>
+                <ChevronRight size={20} color={colors.textSecondary} strokeWidth={2} />
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+              No banks connected
+            </Text>
+          )}
           <TouchableOpacity
             style={[styles.addBankButton, { borderColor: colors.border }]}
             onPress={() => navigation.navigate('Onboarding')}
@@ -249,24 +336,25 @@ export default function SettingsScreen() {
             />
           </View>
 
-          {/* Push Notifications */}
+          {/* Round-up Enabled */}
           <View style={[styles.toggleItem, { backgroundColor: colors.surface }]}>
             <View style={[styles.settingIcon, { backgroundColor: colors.muted }]}>
               <Bell size={20} color={colors.textSecondary} strokeWidth={2} />
             </View>
             <View style={styles.toggleContent}>
               <Text style={[styles.settingLabel, { color: colors.text }]}>
-                Push Notifications
+                Round-up Savings
               </Text>
               <Text style={[styles.settingDescription, { color: colors.textSecondary }]}>
-                Get alerts for bills and spending
+                Automatically round up purchases to save
               </Text>
             </View>
             <Switch
               value={pushNotifications}
-              onValueChange={setPushNotifications}
+              onValueChange={(value) => handleUpdateSetting('round_up_enabled', value)}
               trackColor={{ false: colors.border, true: colors.primary }}
               thumbColor="#fff"
+              disabled={updatingSetting || !profile}
             />
           </View>
 
@@ -426,6 +514,12 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
   },
   avatarText: { color: '#fff', fontSize: 20, fontWeight: '700' },
   profileInfo: { flex: 1, marginLeft: 16 },
@@ -514,4 +608,14 @@ const styles = StyleSheet.create({
   signOutText: { fontSize: 15, fontWeight: '600' },
   versionText: { fontSize: 12, textAlign: 'center', marginTop: 16 },
   bottomPadding: { height: 40 },
+  loadingContainer: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 13,
+    textAlign: 'center',
+    padding: 16,
+  },
 });

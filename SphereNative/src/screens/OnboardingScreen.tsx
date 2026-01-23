@@ -7,6 +7,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { createLinkToken, createLinkTokenWithRedirect, exchangePublicToken, getAccounts, getSummary } from '../lib/plaid';
+import { createVault, getVaults } from '../lib/database';
 import * as WebBrowser from 'expo-web-browser';
 import * as ExpoLinking from 'expo-linking';
 import { create as createPlaidLink, open as openPlaidLink } from 'react-native-plaid-link-sdk';
@@ -295,7 +296,27 @@ export default function OnboardingScreen() {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
+    // Create Buffer vault if it doesn't exist
+    try {
+      const existingVaults = await getVaults();
+      const bufferVault = existingVaults.find(v => v.name.toLowerCase().includes('buffer'));
+      
+      if (!bufferVault) {
+        await createVault({
+          name: 'Buffer',
+          icon: '☔',
+          balance: 0,
+          color: 'from-blue-400 to-blue-500',
+          description: 'For unexpected moments',
+        });
+        console.log('Buffer vault created during onboarding');
+      }
+    } catch (error) {
+      console.error('Error creating Buffer vault during onboarding:', error);
+      // Don't block onboarding completion if vault creation fails
+    }
+
     // Log all collected onboarding data
     const onboardingData = {
       timestamp: new Date().toISOString(),
