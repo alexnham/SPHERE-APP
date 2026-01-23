@@ -4,7 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useViewMode } from '../contexts/ViewModeContext';
 import { Card } from '../components/Card';
 import { formatCurrency } from '../lib/utils';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import {
@@ -21,6 +21,7 @@ import { useAccounts } from '../hooks/useAccounts';
 import { useSummary } from '../hooks/useSummary';
 import { useBills } from '../hooks/useBills';
 import { useTransactions } from '../hooks/useTransactions';
+import { useVaults } from '../hooks/useVaults';
 import { calculateSafeToSpend, generateDailySpendData } from '../lib/database';
 import { ChevronRight, Calendar, BarChart3, CreditCard, TrendingDown, TrendingUp } from 'lucide-react-native';
 import { differenceInDays } from 'date-fns';
@@ -33,6 +34,7 @@ export default function OverviewScreen() {
   const { accounts, loading: accountsLoading } = useAccounts();
   const { summary, loading: summaryLoading } = useSummary();
   const { bills, loading: billsLoading } = useBills();
+  const { vaults } = useVaults(); // Listen to vault changes to refresh safe to spend
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const { transactions, loading: transactionsLoading } = useTransactions({
@@ -43,36 +45,46 @@ export default function OverviewScreen() {
   const [dailySpendData, setDailySpendData] = React.useState<Array<{ date: Date; amount: number; categories: Record<string, number> }>>([]);
   const [loadingSafeToSpend, setLoadingSafeToSpend] = React.useState(true);
 
-  // Fetch safe to spend and daily spend data
+  // Function to fetch safe to spend and daily spend data
+  const fetchData = React.useCallback(async () => {
+    try {
+      setLoadingSafeToSpend(true);
+      const [safeToSpend, dailySpend] = await Promise.all([
+        calculateSafeToSpend(),
+        generateDailySpendData(),
+      ]);
+      setSafeToSpendData(safeToSpend);
+      setDailySpendData(dailySpend);
+    } catch (error) {
+      console.error('Error fetching overview data:', error);
+      // Set default values on error to prevent UI from breaking
+      setSafeToSpendData({
+        safeToSpend: 0,
+        breakdown: {
+          liquidAvailable: 0,
+          pendingOutflows: 0,
+          upcoming7dEssentials: 0,
+          userBuffer: 0,
+          isVaultBuffer: false,
+        },
+      });
+      setDailySpendData([]);
+    } finally {
+      setLoadingSafeToSpend(false);
+    }
+  }, []);
+
+  // Fetch data when screen comes into focus
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchData();
+    }, [fetchData])
+  );
+
+  // Also refresh when accounts or vaults change
   React.useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoadingSafeToSpend(true);
-        const [safeToSpend, dailySpend] = await Promise.all([
-          calculateSafeToSpend(),
-          generateDailySpendData(),
-        ]);
-        setSafeToSpendData(safeToSpend);
-        setDailySpendData(dailySpend);
-      } catch (error) {
-        console.error('Error fetching overview data:', error);
-        // Set default values on error to prevent UI from breaking
-        setSafeToSpendData({
-          safeToSpend: 0,
-          breakdown: {
-            liquidAvailable: 0,
-            pendingOutflows: 0,
-            upcoming7dEssentials: 0,
-            userBuffer: 200,
-          },
-        });
-        setDailySpendData([]);
-      } finally {
-        setLoadingSafeToSpend(false);
-      }
-    };
     fetchData();
-  }, [accounts]);
+  }, [accounts, vaults, fetchData]);
 
   // Calculate total available - only checking accounts (includes cash management)
   const totalAvailable = useMemo(() => {
@@ -107,7 +119,13 @@ export default function OverviewScreen() {
 
   const isLoading = accountsLoading || summaryLoading || loadingSafeToSpend || billsLoading || transactionsLoading;
   const safeToSpend = safeToSpendData?.safeToSpend || 0;
-  const breakdown = safeToSpendData?.breakdown || { liquidAvailable: 0, pendingOutflows: 0, upcoming7dEssentials: 0, userBuffer: 200 };
+  const breakdown = safeToSpendData?.breakdown || { 
+    liquidAvailable: 0, 
+    pendingOutflows: 0, 
+    upcoming7dEssentials: 0, 
+    userBuffer: 0,
+    isVaultBuffer: false,
+  };
 
   // Show loading state
   if (isLoading) {

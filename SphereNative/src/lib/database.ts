@@ -373,7 +373,7 @@ export const generateDailySpendData = async (): Promise<DailySpend[]> => {
 
 // Helper: Calculate safe to spend
 export const calculateSafeToSpend = async () => {
-  let accounts: Account[], transactions: Transaction[], bills: RecurringCharge[];
+  let accounts: Account[], transactions: Transaction[], bills: RecurringCharge[], vaults: DatabaseVault[];
   
   try {
     accounts = await getAccounts();
@@ -396,6 +396,14 @@ export const calculateSafeToSpend = async () => {
     bills = [];
   }
   
+  // Get vaults for buffer calculation
+  try {
+    vaults = await getVaults();
+  } catch (error) {
+    console.warn('Failed to fetch vaults, using empty array:', error);
+    vaults = [];
+  }
+  
   // Get profile with error handling
   let profile: any;
   try {
@@ -405,7 +413,15 @@ export const calculateSafeToSpend = async () => {
     profile = { default_buffer_amount: 200 };
   }
 
-  const buffer = profile.default_buffer_amount || 200;
+  // Find the Rainy Day / Buffer vault specifically
+  const bufferVault = vaults.find(v => 
+    v.name.toLowerCase().includes('buffer') || 
+    v.name.toLowerCase().includes('rainy day')
+  );
+  
+  // Always use the buffer vault balance if found, otherwise fallback to profile default
+  const buffer = bufferVault !== undefined ? (bufferVault.balance || 0) : (profile.default_buffer_amount || 200);
+  
   const liquidAvailable = accounts
     .filter(a => a.type === 'checking')
     .reduce((sum, a) => sum + a.availableBalance, 0);
@@ -431,6 +447,8 @@ export const calculateSafeToSpend = async () => {
       pendingOutflows,
       upcoming7dEssentials,
       userBuffer: buffer,
+      isVaultBuffer: bufferVault !== undefined,
+      bufferVaultName: bufferVault?.name,
     },
   };
 };

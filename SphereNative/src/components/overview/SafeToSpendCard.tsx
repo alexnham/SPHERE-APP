@@ -18,6 +18,8 @@ interface SafeToSpendCardProps {
     pendingOutflows: number;
     upcoming7dEssentials: number;
     userBuffer: number;
+    isVaultBuffer?: boolean;
+    bufferVaultName?: string;
   };
   weeklyData?: {
     last7Days: number[];
@@ -29,7 +31,7 @@ const defaultBreakdown = {
   liquidAvailable: 0,
   pendingOutflows: 0,
   upcoming7dEssentials: 0,
-  userBuffer: 200,
+  userBuffer: 0,
 };
 
 // Icon map for breakdown items
@@ -101,7 +103,19 @@ export const SafeToSpendCard = ({ colors, safeToSpend = 0, breakdown = defaultBr
         <BreakdownItem iconKey="available" label="Available" value={breakdown.liquidAvailable} colors={colors} type="positive" />
         <BreakdownItem iconKey="pending" label="Pending" value={-breakdown.pendingOutflows} colors={colors} type="pending" />
         <BreakdownItem iconKey="bills" label="Bills (7 days)" value={-breakdown.upcoming7dEssentials} colors={colors} type="committed" />
-        <BreakdownItem iconKey="buffer" label="Buffer" value={-breakdown.userBuffer} colors={colors} type="buffer" />
+        <BreakdownItem 
+          iconKey="buffer" 
+          label={
+            breakdown.isVaultBuffer && breakdown.bufferVaultName 
+              ? breakdown.bufferVaultName 
+              : breakdown.isVaultBuffer 
+              ? "Savings Vaults" 
+              : "Buffer"
+          } 
+          value={-breakdown.userBuffer} 
+          colors={colors} 
+          type="buffer" 
+        />
       </View>
     </Card>
   );
