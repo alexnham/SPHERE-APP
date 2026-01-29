@@ -93,6 +93,28 @@ export const ConnectBankSlide = ({
         </View>
       )}
 
+      {/* Add Another Bank Button - shown when banks are already connected */}
+      {(connectedAccounts.length > 0 || connectedBanks.length > 0) && (
+        <TouchableOpacity
+          style={[styles.addBankButton, { borderColor: colors.border, backgroundColor: colors.surface }]}
+          onPress={onConnect}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <ActivityIndicator color={colors.primary} style={{ marginRight: 8 }} />
+              <Text style={[styles.addBankText, { color: colors.primary }]}>Connecting...</Text>
+            </>
+          ) : (
+            <>
+              <Building2 size={18} color={colors.primary} strokeWidth={2} />
+              <Text style={[styles.addBankText, { color: colors.primary }]}>Add Another Bank</Text>
+            </>
+          )}
+        </TouchableOpacity>
+      )}
+
+      {/* Continue/Connect Button */}
       <TouchableOpacity
         style={[styles.button, { backgroundColor: colors.primary }]}
         onPress={connectedAccounts.length > 0 || connectedBanks.length > 0 ? onNext : onConnect}
@@ -205,5 +227,20 @@ const styles = StyleSheet.create({
   institutionName: {
     fontSize: 11,
     marginTop: 6,
+  },
+  addBankButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    marginBottom: 12,
+    gap: 8,
+  },
+  addBankText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

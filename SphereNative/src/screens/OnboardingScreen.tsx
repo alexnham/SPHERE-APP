@@ -132,19 +132,10 @@ export default function OnboardingScreen() {
       // Step 2: Open Plaid Link
       if (Platform.OS === 'web') {
         // For web, we can use the Plaid Link directly (or simulate in dev)
-        Alert.alert(
-          'Connect Bank',
-          'In production, this would open Plaid Link. For development, simulating a successful connection.',
-          [
-            {
-              text: 'Simulate Connection',
-              onPress: async () => {
-                await simulatePlaidConnection();
-              },
-            },
-            { text: 'Cancel', style: 'cancel' },
-          ]
-        );
+        console.log('=== WEB: Showing Plaid connection alert ===');
+        // For web, directly simulate the connection instead of showing alert
+        // This ensures it always runs
+        await simulatePlaidConnection();
       } else {
         // Native: use react-native-plaid-link-sdk create/open for a full in-app native experience
         try {
@@ -161,15 +152,19 @@ export default function OnboardingScreen() {
               } else {
                 // Fallback: try fetching accounts from backend
                 await fetchConnectedAccounts();
+                setIsLoading(false);
               }
             },
             onExit: (result: any) => {
               const err = result?.error ?? null;
               handlePlaidExit(err);
+              setIsLoading(false);
             },
           });
+          // Don't set loading to false here - Plaid Link is async, callbacks will handle it
         } catch (err) {
           console.error('Error opening Plaid Link via native SDK:', err);
+          setIsLoading(false);
           // Fallback: open hosted link in in-app browser
           try {
             const redirectUri = ExpoLinking.createURL('plaid-link-callback');
@@ -183,21 +178,25 @@ export default function OnboardingScreen() {
                 await handlePlaidSuccess(publicToken);
               } else {
                 await fetchConnectedAccounts();
+                setIsLoading(false);
               }
+            } else {
+              setIsLoading(false);
             }
             try { WebBrowser.maybeCompleteAuthSession(); } catch (e) {}
           } catch (err2) {
             console.error('Fallback WebBrowser error', err2);
             Alert.alert('Open Failed', 'Could not open Plaid Link. Try again later.');
+            setIsLoading(false);
           }
         }
       }
     } catch (error) {
       console.error('=== PLAID LINK ERROR ===', error);
       Alert.alert('Error', 'Failed to initialize bank connection. Please try again.');
-    } finally {
       setIsLoading(false);
     }
+    // Removed finally block - loading state is managed by callbacks and error handlers
   };
 
   // Handler called when Plaid Link completes successfully
@@ -207,8 +206,8 @@ export default function OnboardingScreen() {
       const res = await exchangePublicToken(publicToken);
       if (res?.success) {
         await fetchConnectedAccounts();
-        Alert.alert('Banks Connected!', `Successfully linked accounts`);
-        nextSlide();
+        // Don't auto-advance - let user decide to continue or add more banks
+        Alert.alert('Bank Connected!', `Successfully linked accounts. You can add more banks or continue.`);
       } else {
         Alert.alert('Connection Failed', 'Unable to exchange token.');
       }
@@ -231,10 +230,15 @@ export default function OnboardingScreen() {
   const simulatePlaidConnection = async () => {
     setIsLoading(true);
     
+    // Generate unique IDs based on timestamp and random number to avoid duplicates
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    
     // Simulated accounts data (similar to what Plaid would return)
+    // Use unique IDs so each connection adds new accounts
     const simulatedAccounts: PlaidAccount[] = [
       {
-        id: 'acc_1',
+        id: `acc_${timestamp}_${random}_1`,
         name: 'Checking Account',
         type: 'depository',
         subtype: 'checking',
@@ -242,7 +246,7 @@ export default function OnboardingScreen() {
         institution_name: 'Chase Bank',
       },
       {
-        id: 'acc_2',
+        id: `acc_${timestamp}_${random}_2`,
         name: 'Savings Account',
         type: 'depository',
         subtype: 'savings',
@@ -250,7 +254,7 @@ export default function OnboardingScreen() {
         institution_name: 'Chase Bank',
       },
       {
-        id: 'acc_3',
+        id: `acc_${timestamp}_${random}_3`,
         name: 'Credit Card',
         type: 'credit',
         subtype: 'credit card',
@@ -262,15 +266,26 @@ export default function OnboardingScreen() {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    setConnectedAccounts(simulatedAccounts);
-    setConnectedBanks(['Chase Bank', 'Bank of America']);
+    // Add to existing accounts instead of replacing
+    setConnectedAccounts(prev => {
+      const existingIds = new Set(prev.map(a => a.id));
+      const newAccounts = simulatedAccounts.filter(a => !existingIds.has(a.id));
+      return [...prev, ...newAccounts];
+    });
+    
+    setConnectedBanks(prev => {
+      const newBanks = simulatedAccounts
+        .map(a => a.institution_name)
+        .filter(Boolean) as string[];
+      return [...new Set([...prev, ...newBanks])];
+    });
     
     console.log('=== PLAID CONNECTION SIMULATED ===');
     console.log('Connected Accounts:', JSON.stringify(simulatedAccounts, null, 2));
     
     setIsLoading(false);
-    Alert.alert('Banks Connected!', `Successfully linked ${simulatedAccounts.length} accounts`);
-    nextSlide();
+    // Don't auto-advance - let user decide to continue or add more banks
+    Alert.alert('Bank Connected!', `Successfully linked accounts. You can add more banks or continue.`);
   };
 
   // Fetch real connected accounts from backend
@@ -284,12 +299,33 @@ export default function OnboardingScreen() {
       console.log('Summary:', JSON.stringify(summary, null, 2));
 
       if (accounts.length > 0) {
-        setConnectedAccounts(accounts);
-        const uniqueBanks = [...new Set(accounts.map(a => a.institution_name).filter(Boolean))] as string[];
-        setConnectedBanks(uniqueBanks);
+        // Map accounts to PlaidAccount format and merge with existing
+        const newAccounts: PlaidAccount[] = accounts.map(acc => ({
+          id: acc.id,
+          name: acc.name,
+          type: acc.type,
+          subtype: acc.subtype,
+          current_balance: acc.current_balance,
+          institution_name: acc.institution_name,
+        }));
+
+        // Add new accounts that don't already exist
+        setConnectedAccounts(prev => {
+          const existingIds = new Set(prev.map(a => a.id));
+          const uniqueNewAccounts = newAccounts.filter(a => !existingIds.has(a.id));
+          return [...prev, ...uniqueNewAccounts];
+        });
+
+        // Update banks list with unique institutions
+        setConnectedBanks(prev => {
+          const newBanks = newAccounts
+            .map(a => a.institution_name)
+            .filter(Boolean) as string[];
+          return [...new Set([...prev, ...newBanks])];
+        });
         
-        Alert.alert('Banks Connected!', `Successfully linked ${accounts.length} accounts`);
-        nextSlide();
+        // Don't auto-advance - let user decide to continue or add more banks
+        // Alert will be shown by handlePlaidSuccess
       }
     } catch (error) {
       console.error('Error fetching accounts:', error);
@@ -369,6 +405,7 @@ export default function OnboardingScreen() {
           colors={colors} 
           isLoading={isLoading} 
           onSignIn={handleGoogleSignIn}
+          onNext={nextSlide}
           userEmail={userEmail}
           userName={userName}
         />

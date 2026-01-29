@@ -1,17 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Check } from 'lucide-react-native';
+import { Check, ArrowRight } from 'lucide-react-native';
 import { GoogleIcon } from '../shared/GoogleIcon';
 
 interface GoogleSignInSlideProps {
   colors: any;
   isLoading: boolean;
   onSignIn: () => void;
+  onNext?: () => void;
   userEmail?: string | null;
   userName?: string | null;
 }
 
-export const GoogleSignInSlide = ({ colors, isLoading, onSignIn, userEmail, userName }: GoogleSignInSlideProps) => (
+export const GoogleSignInSlide = ({ colors, isLoading, onSignIn, onNext, userEmail, userName }: GoogleSignInSlideProps) => (
   <View style={styles.container}>
     <View style={styles.iconCircle}>
       <GoogleIcon size={40} />
@@ -27,15 +28,26 @@ export const GoogleSignInSlide = ({ colors, isLoading, onSignIn, userEmail, user
     </Text>
 
     {userEmail ? (
-      <View style={[styles.successContainer, { backgroundColor: colors.surface }]}>
-        <View style={styles.successIcon}>
-          <Check size={24} color="#fff" strokeWidth={3} />
+      <>
+        <View style={[styles.successContainer, { backgroundColor: colors.surface }]}>
+          <View style={styles.successIcon}>
+            <Check size={24} color="#fff" strokeWidth={3} />
+          </View>
+          <View style={styles.successTextContainer}>
+            <Text style={[styles.successTitle, { color: colors.text }]}>{userName || 'User'}</Text>
+            <Text style={[styles.successEmail, { color: colors.textSecondary }]}>{userEmail}</Text>
+          </View>
         </View>
-        <View style={styles.successTextContainer}>
-          <Text style={[styles.successTitle, { color: colors.text }]}>{userName || 'User'}</Text>
-          <Text style={[styles.successEmail, { color: colors.textSecondary }]}>{userEmail}</Text>
-        </View>
-      </View>
+        {onNext && (
+          <TouchableOpacity
+            style={[styles.continueButton, { backgroundColor: colors.primary }]}
+            onPress={onNext}
+          >
+            <Text style={styles.continueButtonText}>Continue</Text>
+            <ArrowRight size={18} color="#fff" strokeWidth={2.5} />
+          </TouchableOpacity>
+        )}
+      </>
     ) : (
       <TouchableOpacity
         style={[styles.googleButton, { borderColor: colors.border }]}
@@ -128,5 +140,20 @@ const styles = StyleSheet.create({
   successEmail: {
     fontSize: 13,
     marginTop: 2,
+  },
+  continueButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    paddingVertical: 16,
+    borderRadius: 14,
+    gap: 8,
+    marginBottom: 24,
+  },
+  continueButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
