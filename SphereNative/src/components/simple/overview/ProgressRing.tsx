@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { AnimatedMoney } from '../../shared/AnimatedMoney';
+import { formatCurrency } from '../../../lib/utils';
 
 interface ProgressRingProps {
   progress: number; // 0-1
@@ -8,9 +10,10 @@ interface ProgressRingProps {
   radius?: number;
   strokeWidth?: number;
   label?: string;
-  amount: string;
+  amount: string | number; // Can be string or number for animation
   colors: any;
   gradientColors?: { start: string; end: string };
+  animated?: boolean; // Enable counting animation
 }
 
 export const ProgressRing = ({
@@ -22,6 +25,7 @@ export const ProgressRing = ({
   amount,
   colors,
   gradientColors,
+  animated = false,
 }: ProgressRingProps) => {
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference * (1 - progress);
@@ -65,7 +69,17 @@ export const ProgressRing = ({
           {label && (
             <Text style={[styles.label, { color: colors.textSecondary }]}>{label}</Text>
           )}
-          <Text style={[styles.amount, { color: colors.text }]}>{amount}</Text>
+          {animated && typeof amount === 'number' ? (
+            <AnimatedMoney
+              value={amount}
+              style={[styles.amount, { color: colors.text }]}
+              duration={1500}
+            />
+          ) : (
+            <Text style={[styles.amount, { color: colors.text }]}>
+              {typeof amount === 'number' ? formatCurrency(amount) : amount}
+            </Text>
+          )}
         </View>
       </View>
     </View>

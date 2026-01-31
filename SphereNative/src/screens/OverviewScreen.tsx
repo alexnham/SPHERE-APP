@@ -4,6 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useViewMode } from '../contexts/ViewModeContext';
 import { Card } from '../components/Card';
 import { formatCurrency } from '../lib/utils';
+import { AnimatedMoney } from '../components/shared';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -152,8 +153,9 @@ export default function OverviewScreen() {
         <ProgressRing
           progress={ringProgress}
           label="Available"
-          amount={formatCurrency(totalAvailable)}
+          amount={totalAvailable}
           colors={colors}
+          animated={true}
         />
 
         {/* Safe to Spend with mini chart */}
@@ -163,9 +165,11 @@ export default function OverviewScreen() {
               <Text style={[styles.simpleSafeToSpendLabel, { color: colors.textSecondary }]}>
                 Safe to spend
               </Text>
-              <Text style={[styles.simpleSafeToSpendAmount, { color: colors.primary }]}>
-                {formatCurrency(safeToSpend)}
-              </Text>
+              <AnimatedMoney
+                value={safeToSpend}
+                style={[styles.simpleSafeToSpendAmount, { color: colors.primary }]}
+                duration={1500}
+              />
               <View style={styles.simpleTrendContainer}>
                 {isSpendingDown ? (
                   <TrendingDown size={16} color="#10b981" strokeWidth={2} />
@@ -237,9 +241,11 @@ export default function OverviewScreen() {
           <Text style={[styles.heroLabel, { color: colors.textSecondary }]}>
             Total Available
           </Text>
-          <Text style={[styles.heroAmount, { color: colors.text }]}>
-            {formatCurrency(totalAvailable)}
-          </Text>
+          <AnimatedMoney
+            value={totalAvailable}
+            style={[styles.heroAmount, { color: colors.text }]}
+            duration={1500}
+          />
           <SpendingTrendLine colors={colors} transactions={transactions} />
         </View>
       </Card>
