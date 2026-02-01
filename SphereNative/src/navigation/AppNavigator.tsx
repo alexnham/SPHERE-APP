@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../contexts/ThemeContext';
+import { useAuth } from '../contexts/AuthContext';
 import { Header } from '../components/Header';
 import { 
   LayoutDashboard, 
@@ -146,9 +147,43 @@ const MainTabs = () => {
 
 export const AppNavigator = () => {
   const { colors } = useTheme();
+  const { user, isLoading } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  // Navigate based on authentication status
+  useEffect(() => {
+    if (!isLoading) {
+      if (!user) {
+        // User is not authenticated, navigate to onboarding
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Onboarding' }],
+        });
+      } else {
+        // User is authenticated, navigate to main app
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        });
+      }
+    }
+  }, [user, isLoading, navigation]);
+
+  // Show loading screen while checking authentication
+  if (isLoading) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
+  // Determine initial route based on auth status
+  const initialRouteName = user ? 'Main' : 'Onboarding';
 
   return (
     <Stack.Navigator
+      initialRouteName={initialRouteName}
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.background },
@@ -174,4 +209,9 @@ const styles = StyleSheet.create({
   content: { flex: 1 },
   iconContainer: { alignItems: 'center', justifyContent: 'center' },
   icon: { fontSize: 20 },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
