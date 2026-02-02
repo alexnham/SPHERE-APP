@@ -51,6 +51,17 @@ export default function OnboardingScreen() {
   const userEmail = user?.email || null;
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || null;
 
+  // If user is already authenticated, automatically navigate to main app
+  useEffect(() => {
+    if (user) {
+      // User has an account, skip onboarding and go to home
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
+    }
+  }, [user, navigation]);
+
   const goToSlide = (index: number) => {
     flatListRef.current?.scrollToIndex({ index, animated: true });
     setCurrentSlide(index);

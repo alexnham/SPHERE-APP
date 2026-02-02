@@ -17,7 +17,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 // API URL for backend calls (Plaid token exchange, etc.)
 // TODO: Replace with your active ngrok URL or deployed backend URL
-export const API_URL = 'https://a3a157691805.ngrok-free.app'; // Change to your backend URL
+export const API_URL = 'https://0245e5d62ede.ngrok-free.app'; // Change to your backend URL
 
 // Helper to get auth token
 export const getAuthToken = async (): Promise<string | null> => {
