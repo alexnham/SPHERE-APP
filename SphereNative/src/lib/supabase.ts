@@ -1,10 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import 'react-native-url-polyfill/auto';
+import Config from 'react-native-config';
 
 // Supabase configuration - using the same project as dashboard.html
-const SUPABASE_URL = 'https://dvzwvyjdsrgcgnvejbhs.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2end2eWpkc3JnY2dudmVqYmhzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc5MTU4MzAsImV4cCI6MjA4MzQ5MTgzMH0.WzE4suOD63FzmyLPJEffr1kGCM7OOOoDhqj-G-kmLJk';
+const SUPABASE_URL = Config.SUPABASE_URL as string;
+const SUPABASE_ANON_KEY = Config.SUPABASE_ANON_KEY as string;
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
@@ -17,7 +18,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 
 // API URL for backend calls (Plaid token exchange, etc.)
 // TODO: Replace with your active ngrok URL or deployed backend URL
-export const API_URL = 'https://0245e5d62ede.ngrok-free.app'; // Change to your backend URL
+export const API_URL = Config.API_URL; // Change to your backend URL
 
 // Helper to get auth token
 export const getAuthToken = async (): Promise<string | null> => {

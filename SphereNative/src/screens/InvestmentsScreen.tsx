@@ -10,7 +10,8 @@ import {
   SimplePortfolioCard,
 } from '../components/simple';
 import { TrendingUp, TrendingDown } from 'lucide-react-native';
-import { getInvestmentAccounts, InvestmentAccount } from '../lib/database';
+import { getInvestmentAccounts } from '../lib/database';
+import { InvestmentAccount } from '../lib/mockData';
 
 export default function InvestmentsScreen() {
   const { colors } = useTheme();

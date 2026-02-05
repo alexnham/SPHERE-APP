@@ -51,15 +51,27 @@ export default function OnboardingScreen() {
   const userEmail = user?.email || null;
   const userName = user?.user_metadata?.full_name || user?.user_metadata?.name || null;
 
-  // If user is already authenticated, automatically navigate to main app
+  // Track if user was already authenticated when component first mounted
+  const wasAuthenticatedOnMount = useRef<boolean | null>(null);
+  const hasCheckedInitialAuth = useRef(false);
+
+  // If user is already authenticated when screen first loads, redirect to main app
+  // But don't redirect if they sign in DURING onboarding
   useEffect(() => {
-    if (user) {
-      // User has an account, skip onboarding and go to home
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'Main' }],
-      });
+    // On first mount, check if user is already authenticated
+    if (!hasCheckedInitialAuth.current) {
+      hasCheckedInitialAuth.current = true;
+      wasAuthenticatedOnMount.current = !!user;
+      
+      // If they were already authenticated, redirect immediately
+      if (wasAuthenticatedOnMount.current) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        });
+      }
     }
+    // Don't redirect if they sign in during onboarding - let them continue the flow
   }, [user, navigation]);
 
   const goToSlide = (index: number) => {
@@ -142,11 +154,13 @@ export default function OnboardingScreen() {
 
       // Step 2: Open Plaid Link
       if (Platform.OS === 'web') {
-        // For web, we can use the Plaid Link directly (or simulate in dev)
-        console.log('=== WEB: Showing Plaid connection alert ===');
-        // For web, directly simulate the connection instead of showing alert
-        // This ensures it always runs
-        await simulatePlaidConnection();
+        // For web, show message that Plaid Link is not yet implemented
+        console.log('=== WEB: Plaid Link not yet implemented for web ===');
+        Alert.alert(
+          'Web Not Supported',
+          'Bank connection is currently only available on mobile devices. Please use the mobile app to connect your bank accounts.'
+        );
+        setIsLoading(false);
       } else {
         // Native: use react-native-plaid-link-sdk create/open for a full in-app native experience
         try {
@@ -235,68 +249,6 @@ export default function OnboardingScreen() {
       console.error('Plaid Link exit', error);
       Alert.alert('Plaid Link Closed', error.display_message || error.error_message || 'Link closed');
     }
-  };
-
-  // Simulate Plaid connection for development
-  const simulatePlaidConnection = async () => {
-    setIsLoading(true);
-    
-    // Generate unique IDs based on timestamp and random number to avoid duplicates
-    const timestamp = Date.now();
-    const random = Math.floor(Math.random() * 1000);
-    
-    // Simulated accounts data (similar to what Plaid would return)
-    // Use unique IDs so each connection adds new accounts
-    const simulatedAccounts: PlaidAccount[] = [
-      {
-        id: `acc_${timestamp}_${random}_1`,
-        name: 'Checking Account',
-        type: 'depository',
-        subtype: 'checking',
-        current_balance: 2847.50,
-        institution_name: 'Chase Bank',
-      },
-      {
-        id: `acc_${timestamp}_${random}_2`,
-        name: 'Savings Account',
-        type: 'depository',
-        subtype: 'savings',
-        current_balance: 15420.00,
-        institution_name: 'Chase Bank',
-      },
-      {
-        id: `acc_${timestamp}_${random}_3`,
-        name: 'Credit Card',
-        type: 'credit',
-        subtype: 'credit card',
-        current_balance: -1250.75,
-        institution_name: 'Bank of America',
-      },
-    ];
-
-    // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-
-    // Add to existing accounts instead of replacing
-    setConnectedAccounts(prev => {
-      const existingIds = new Set(prev.map(a => a.id));
-      const newAccounts = simulatedAccounts.filter(a => !existingIds.has(a.id));
-      return [...prev, ...newAccounts];
-    });
-    
-    setConnectedBanks(prev => {
-      const newBanks = simulatedAccounts
-        .map(a => a.institution_name)
-        .filter(Boolean) as string[];
-      return [...new Set([...prev, ...newBanks])];
-    });
-    
-    console.log('=== PLAID CONNECTION SIMULATED ===');
-    console.log('Connected Accounts:', JSON.stringify(simulatedAccounts, null, 2));
-    
-    setIsLoading(false);
-    // Don't auto-advance - let user decide to continue or add more banks
-    Alert.alert('Bank Connected!', `Successfully linked accounts. You can add more banks or continue.`);
   };
 
   // Fetch real connected accounts from backend

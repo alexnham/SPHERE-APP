@@ -153,18 +153,33 @@ export const AppNavigator = () => {
   // Navigate based on authentication status
   useEffect(() => {
     if (!isLoading) {
+      const state = navigation.getState();
+      const currentRoute = state?.routes[state?.index || 0]?.name;
+      
       if (!user) {
-        // User is not authenticated, navigate to onboarding
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Onboarding' }],
-        });
+        // User is not authenticated, navigate to onboarding (only if not already there)
+        if (currentRoute !== 'Onboarding') {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Onboarding' }],
+          });
+        }
       } else {
-        // User is authenticated, navigate to main app
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Main' }],
-        });
+        // User is authenticated
+        // Don't redirect if they're on Onboarding - let them complete it
+        // The OnboardingScreen will navigate to Main when they finish
+        if (currentRoute === 'Onboarding') {
+          // Stay on onboarding - user is completing the flow
+          return;
+        }
+        // If authenticated and not on a valid route, go to Main
+        const validRoutes = ['Main', 'Settings', 'DebtDetail', 'Bills', 'WeeklyReflection'];
+        if (!validRoutes.includes(currentRoute || '')) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: 'Main' }],
+          });
+        }
       }
     }
   }, [user, isLoading, navigation]);
